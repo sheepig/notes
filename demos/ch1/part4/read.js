@@ -22,11 +22,12 @@ function readFile(file) {
     }
 }
 
-if (process.argv.length > 0) {
-    process.argv.forEach(function(arg, index) {
-        args[arg].apply(this, process.argv.slice(index + 1));
-    });
-}
+// if (process.argv.length > 0) {
+//     console.log(process.argv);
+//     process.argv.forEach(function(arg, index) {
+//         args.apply(this, process.argv.slice(index + 1));
+//     });
+// }
 
 module.exports = {
     args,
