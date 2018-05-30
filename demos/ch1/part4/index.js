@@ -1,2 +1,3 @@
 var read = require('./read');
-read.readFile('./read.js');
+read.readFile('./read1.js');
+module.exports = {};
