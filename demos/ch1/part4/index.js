@@ -1,2 +1,2 @@
 var read = require('./read');
-read.readFile()
+read.readFile('./read.js');
