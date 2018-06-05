@@ -1,4 +1,5 @@
 var stream = require('stream');
+var util = require('util');
 
 class MemoryStream extends stream.Readable {
     constructor() {
@@ -22,7 +23,12 @@ class OutputStream extends stream.Writable {
             dest.isTTY = this.isTTY;
         }.bind(this));
     }
-    _write() {
-        
+    _write(chunk, encoding, cb) {
+        util.print(chunk.toString());
+        cb && cb();
     }
 }
+var memoryStream = new MemoryStream();
+// memoryStream.pipe(new OutputStream());
+memoryStream.pipe(process.stdout);
+module.exports = {};
