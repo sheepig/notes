@@ -9,14 +9,14 @@ function debounce (method, wait, context) {
     }, wait);
 }
 ```
-对```scroll```事件测试：
+对`scroll`事件测试：
 ```javascript
 function handle() {
     console.log('scroll');
 }
 window.addEventListener('scroll', debounce(handle, 1000));
 ```
-连续滚动（每次间隔时间小于1000ms，不会触发```handle```方法，因为每次触发都会取消上一次的延时事件，然后重新设置延时1000ms。只有两次```scroll```事件间隔超过1000ms，前一次的才会被触发。
+连续滚动（每次间隔时间小于1000ms，不会触发`handle`方法，因为每次触发都会取消上一次的延时事件，然后重新设置延时1000ms。只有两次`scroll`事件间隔超过1000ms，前一次的才会被触发。
 ### debounce更加常规的写法：返回一个闭包
 ```javascript
 function debounce(method, wait) {
@@ -42,6 +42,6 @@ function handle() {
 var fun = debounce(handle,1000);
 box.addEventListener('scroll',fun);
 ```
-脚本加载后，```debounce initialized```只会被打印一次。```box```的```scroll```事件的触发有1000ms防抖。
+脚本加载后，`debounce initialized`只会被打印一次。`box`的`scroll`事件的触发有1000ms防抖。
 
 :point_right: [demo in jsfiddle](https://jsfiddle.net/xqy_young/Ls2jaxvp/3/?utm_source=website&utm_medium=embed&utm_campaign=Ls2jaxvp)
