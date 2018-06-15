@@ -9,7 +9,7 @@ function debounce (method, wait, context) {
     }, wait);
 }
 ```
-对`scroll`事件测试：
+对`scroll`事件测试：
 ```javascript
 function handle() {
     console.log('scroll');
@@ -42,6 +42,6 @@ function handle() {
 var fun = debounce(handle,1000);
 box.addEventListener('scroll',fun);
 ```
-脚本加载后，`debounce initialized`只会被打印一次。`box`的`scroll`事件的触发有1000ms防抖。
+脚本加载后，`debounce initialized`只会被打印一次。`box`的`scroll`事件的触发有1000ms防抖。
 
 :point_right: [demo in jsfiddle](https://jsfiddle.net/xqy_young/Ls2jaxvp/3/?utm_source=website&utm_medium=embed&utm_campaign=Ls2jaxvp)
