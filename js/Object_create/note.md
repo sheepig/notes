@@ -7,7 +7,7 @@ MDN上定义：`Object.create()`方法创建一个新对象，使用现有的对
 - proto:新创建对象的原型对象
 - propertiesObject：可选。如果没有指定为`undefined`，则是要添加到新创建对象的可枚举属性（即其自身定义的属性，而不是其原型链上的枚举属性）对象的属性描述符以及相应的属性名称。这些属性对应`Object.defineProperties()`的第二个参数。
 
-借用原文作者的:chestnut:
+借用原文作者的:chestnut:
 ```javascript
 const car = {
   isSportsCar: false,
@@ -44,7 +44,9 @@ var o = {
     a: 1
 };
 ```
+
 ![img](./img1.png)
+
 从上图可以看到，新创建的对象继承了Object自身的方法，如`hasOwnProperty`、`toString`等，在新对象上可以直接使用。
 
 ### Object.create()
@@ -58,6 +60,7 @@ var o = Object.create(null,{
 })
 console.log(o);
 ```
+
 ![](./img2.png)
 
 可以看到，新创建的对象除了自身属性a之外，原型链上没有任何属性，也就是没有继承Object的任何东西，此时如果我们调用`o.toString()`会报Uncaught TypeError的错误。
@@ -74,6 +77,7 @@ var o = Object.create({},{
 console.log(o)
 ```
 将null改为`{}`，结果是怎样的？在chrome控制台打印如下：
+
 ![img](./img3.png)
 
 我们看到，这样创建的对象和使用`{}`创建对象已经很相近了，但是还是有一点区别：多了一层`__proto__`嵌套。
@@ -89,7 +93,9 @@ var o = Object.create(Object.prototype,{
 })
 console.log(o)
 ```
+
 控制台打印如下：
+
 ![img](./img4.png)
 
 这次就和使用`{}`创建的对象一模一样了。
