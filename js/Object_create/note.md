@@ -1,4 +1,6 @@
-> 参考[【第1244期】详解Object.create(null)](https://mp.weixin.qq.com/s/HiEk_HHySMdTUUatLdjarQ)
+> 参考 [【第1244期】详解Object.create(null)](https://mp.weixin.qq.com/s/HiEk_HHySMdTUUatLdjarQ)
+>
+> 参考 [Surprising polymorphism in React applications](https://medium.com/@bmeurer/surprising-polymorphism-in-react-applications-63015b50abc)
 
 ## Object.create()
 MDN上定义：`Object.create()`方法创建一个新对象，使用现有的对象来提供新创建的对象的`__proto__`。 
