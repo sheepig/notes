@@ -58,7 +58,7 @@ render(s1);
 render(s2);
 ```
 
-坦白说，`render` 处理的属性应该是单态的，例如，`state` 对象的应当有一样的 `shape` —— [map or hidden class in V8 speak](https://github.com/v8/v8/wiki/Design%20Elements#fast-property-access)。在同一时刻，序列中的`s1` 和 `s2` 都有 `id` ，`test` ，`completed`  属性。然而，在 `d8` shell 上运行这段代码并追踪 ICs（inline cahces 内联缓存），我们观察到，`render` 侦测到不同的对象 shapes ，`state.id` 和 `state.test` 属性的访问是多态的。
+坦白说，`render` 处理的属性应该是单态的，例如，`state` 对象的应当有一样的 `shape` —— [map or hidden class in V8 speak](https://github.com/v8/v8/wiki/Design%20Elements#fast-property-access)。在同一时刻，序列中的`s1` 和 `s2` 都有 `id` ，`test` ，`completed`  属性。然而，在 `d8` shell 上运行这段代码并追踪 ICs（inline cahces 内联缓存），我们观察到，`render` 侦测到不同的对象 shapes ，`state.id` 和 `state.test` 属性的访问是多态的。
 
 ![](https://cdn-images-1.medium.com/max/800/1*FrfEaOkxshIj79wJDQyrIQ.png)
 
@@ -103,7 +103,7 @@ console.log("a and b have same map:", %HaveSameMap(a, b));
 
 ![](https://cdn-images-1.medium.com/max/800/1*Xu-nIj21gj-GlHDkzsSOSA.png)
 
-这同样适用于有大量属性并通过 Babel 编译的场景。因为 Babel——或者其他编译器——在对处理大量属性的时候使用了 `Object.assign` 。
+这同样适用于有大量属性并通过 Babel 编译的场景。因为 Babel——或者其他编译器——在对处理大量属性的时候使用了 `Object.assign` 。
 
 ![](https://cdn-images-1.medium.com/max/800/1*F2x8lRcZ83pQDvftelFOgA.png)
 
@@ -120,4 +120,4 @@ console.log("b is", b);
 console.log("a and b have same map:", %HaveSameMap(a, b));
 ```
 
-也就是说，关于代码多态化的问题还未停歇。保持单态性，对你的大多数代码来说，或许根本不重要。在无所谓的优化之前，你应当细心衡量对比。
+也就是说，关于代码多态化的问题还未停歇。保持单态性，对你的大多数代码来说，或许根本不重要。在无所谓的优化之前，你应当细心衡量对比。
