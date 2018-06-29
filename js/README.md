@@ -8,6 +8,8 @@
 
 [创建对象之原型模式](./class-extend-methods/_3prototype-pattern.md)
 
+[创建对象之组合模式](./class-extend-methods/_4constructor_prototype.md)
+
 ## 未分类
 [防抖](./debounce/note.md)
 
