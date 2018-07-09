@@ -16,3 +16,7 @@
 [节流](./throttle/note.md)
 
 [详解Object.create(null)](./Object_create/note.md)
+
+[正则解析一个完整的url](./regexp-url/note.md)
+
+[实现add(1)(2)(3)...(n)](./chained-calls/note.md)
