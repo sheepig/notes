@@ -20,3 +20,9 @@
 [正则解析一个完整的url](./regexp-url/note.md)
 
 [实现add(1)(2)(3)...(n)](./chained-calls/note.md)
+
+[给数字添加千分符](./format-number/note.md)
+
+## 作用域相关问题
+
+[作用域相关问题](./scope-relative/note.md)
