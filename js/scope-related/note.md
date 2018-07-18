@@ -44,26 +44,3 @@ console.log('foo');       // 1: foo
 console.log('bar');       // 2: bar
 console.log('num:', num); // 3: num: 2
 ```
-
-### 函数柯里化
-
-实现一个函数，输出结果如下：
-
-```javascript
-f(1).value==1;
-f(1)(2).value==5;
-f(1)(2)(3).value==14;
-```
-
-```javascript
-var f = function(first) {
-    let sum = first * first;
-    let multi = function(param) {
-        sum += param * param;
-        multi.value = sum;
-        return multi;
-    }
-    multi.value = sum;
-    return multi;
-}
-```
