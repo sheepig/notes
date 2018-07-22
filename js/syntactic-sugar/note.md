@@ -121,7 +121,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { 
+  if (typeof superClass !== "function" && superClass !== null) { 
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); 
+  } 
+  subClass.prototype = Object.create(superClass && superClass.prototype, { 
+    constructor: { 
+      value: subClass, 
+      enumerable: false, 
+      writable: true, 
+      configurable: true 
+    }
+  }); 
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; 
+}
 
 var App = function (_Component) {
   _inherits(App, _Component);
@@ -146,4 +159,5 @@ var App = function (_Component) {
 }(Component);
 ```
 
-App 是一个自执行函数，父类 Component 作为参数被传入。
+`App` 是一个自执行函数，父类 `Component` 作为参数被传入。 `_inherits` 方法，子类 `subClass.prototype` 继承 `superClass.prototype` 。App 构造函数处理继承父类属性，最后返回 App 构造函数。
+
