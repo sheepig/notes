@@ -1,4 +1,4 @@
-## ES6 那些语法糖
+## ES6 => ES5
 
 转义结果来自babel
 
@@ -87,7 +87,7 @@ var Component = function () {
 }();
 ```
 
-Component 变成了一个自执行匿名函数。在这个函数里面，创建一个同名的构造函数 `Component` ，最后返回它。属性的创建方法同前一个例子一样，方法则是通过 `_createClass` 方法创建。
+Component 变成了一个自执行匿名函数。在这个函数里面，创建一个同名的构造函数 `Component` ，最后返回它。属性的创建方法同前一个例子一样，方法则是通过 `_createClass` 方法创建。
 
 我们把 `Component` 构造函数和一个携带 `fn` 信息的对象数组传给了 `_createClass` 自执行函数（闭包），最后的结果就是通过 `Object.defineProperty` ，把函数（们）挂在了 `Component` 的原型对象（`Component.prototype`）上。class 声明的“类”中的函数，是挂在原型对象上的，由所有实例共享。
 
@@ -98,7 +98,7 @@ var c2 = new Component();
 console.log(c1.fn === c2.fn); // true
 ```
 
-### class extends...
+### class extends...
 
 ```javascript
 class App extends Component {
@@ -159,5 +159,39 @@ var App = function (_Component) {
 }(Component);
 ```
 
-`App` 是一个自执行函数，父类 `Component` 作为参数被传入。 `_inherits` 方法，子类 `subClass.prototype` 继承 `superClass.prototype` 。App 构造函数处理继承父类属性，最后返回 App 构造函数。
+`App` 是一个自执行函数，父类 `Component` 作为参数被传入。 `_inherits` 方法，子类 `subClass.prototype` 继承 `superClass.prototype` 。App 构造函数处理继承父类属性，最后返回 App 构造函数。
+
+### rest 参数
+
+```javascript
+function push(array, ...items) {
+  items.forEach(function(item) {
+    array.push(item);
+    console.log(item);
+  });
+}
+
+var a = [];
+push(a, 1, 2, 3)
+```
+
+rest 参数使得我们可以传入多余参数，把他们当数组一样处理。（实际上在内部，他们的确被转化成一个数组）。这样就可以不用 arguments 参数。arguments 参数是类数组对象，除了 length 属性和索引元素之外没有任何 Array 属性。
+
+```javascript
+"use strict";
+
+function push(array) {
+  for (var _len = arguments.length, items = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    items[_key - 1] = arguments[_key];
+  }
+
+  items.forEach(function (item) {
+    array.push(item);
+    console.log(item);
+  });
+}
+
+var a = [];
+push(a, 1, 2, 3);
+```
 
