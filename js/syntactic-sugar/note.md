@@ -194,4 +194,3 @@ function push(array) {
 var a = [];
 push(a, 1, 2, 3);
 ```
-
