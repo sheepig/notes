@@ -38,6 +38,7 @@ jspm_packages/
 .vscode/
 test/
 react/node_modules/
+src/
 
 # TypeScript v1 declaration files
 typings/

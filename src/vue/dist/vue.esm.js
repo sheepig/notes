@@ -87,7 +87,7 @@ function toString (val) {
       : String(val)
 }
 
-/**
+/**allowedGlobals
  * Convert a input value to a number for persistence.
  * If the conversion fails, return original string.
  */
