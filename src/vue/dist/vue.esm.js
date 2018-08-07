@@ -977,7 +977,7 @@ function defineReactive (
     val = obj[key];
   }
   var setter = property && property.set;
-
+  
   var childOb = !shallow && observe(val);
   Object.defineProperty(obj, key, {
     enumerable: true,
@@ -2414,6 +2414,7 @@ function initEvents (vm) {
   vm._hasHookEvent = false;
   // init parent attached events
   var listeners = vm.$options._parentListeners;
+  
   if (listeners) {
     updateComponentListeners(vm, listeners);
   }

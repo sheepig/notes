@@ -36,7 +36,6 @@ build/Release
 node_modules/
 jspm_packages/
 .vscode/
-test/
 react/node_modules/
 src/
 
