@@ -330,6 +330,55 @@ childMsg
 
 这一步只对 vm 的 `$attr` `$listener` 做数据劫持。
 
+#### callHook(vm, 'beforeCreated')
+
+```javascript
+function callHook (vm, hook) {
+  // #7573 disable dep collection when invoking lifecycle hooks
+  pushTarget();
+  var handlers = vm.$options[hook];
+  if (handlers) {
+    for (var i = 0, j = handlers.length; i < j; i++) {
+      try {
+        handlers[i].call(vm);
+      } catch (e) {
+        handleError(e, vm, (hook + " hook"));
+      }
+    }
+  }
+  if (vm._hasHookEvent) {
+    vm.$emit('hook:' + hook);
+  }
+  popTarget();
+}
+```
+
+这一步，还有 initMixin 的倒数第二步 `callHook(vm, 'created')` 即调用生命周期钩子。 callHook 的时候会停止依赖收集，先把 "current target watcher being evaluated"(which is globally unique) 保存在 targetStack 栈顶，完成调用完生命周期钩子函数后，弹出 targetStack 栈顶元素，重新赋给 current target。
+
+`$emit` 触发自定义事件。比如 Child 组件绑定的 `@hook:created="hookFromApp"` 。这里 created 就是指子组件的生命周期 created ， `vm._hasHookEvent` 表示父组件是否通过"@hook:"把钩子函数绑定在当前组件上。
+
+
+如果子组件 vm 已经有自己的 created 钩子函数，那么它的钩子函数会优先触发，接下来才是父组件 App 绑定的钩子函数 `hookFromApp`
+
+组件生命周期钩子函数调用顺序如下：
+
+![lifeCycle](./static/lifeCycle.png)
+
+#### initInjections(vm)
+
+[provide/inject](https://cn.vuejs.org/v2/api/#provide-inject) 主要为高阶插件/组件库提供用例。并不推荐直接用于应用程序代码中。 
+
+数据响应式顺序：`injections` `data/props` `provide` 
+
+
+
+
+
+
+
+
+
+
 
 
 

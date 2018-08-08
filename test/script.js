@@ -22,7 +22,7 @@ var Child = Vue.component('child', {
     created() {
     },
     mounted() {
-    }
+    },
 });
 
 new Vue({
@@ -38,6 +38,7 @@ new Vue({
     },
     methods: {
         hookFromApp() {
+        	console.log('hookFromApp')
         },
         clickFromApp() {
         }
