@@ -21,6 +21,14 @@
 
 [JavaScript 引擎基础：Shapes 和 Inline Caches](https://mp.weixin.qq.com/s/AWzJKF1bnPe1WFI3ti5cPA)
 
+[人人网FED博客 从Chrome源码看JS Object的实现](https://fed.renren.com/2017/04/04/chrome-object/)
+
+[CSS性能优化的8个技巧](http://verymuch.site/2018/07/22/CSS%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E7%9A%848%E4%B8%AA%E6%8A%80%E5%B7%A7/)
+
+[浏览器的工作原理](https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/)
+
+
+
 # 资讯
 
 [gitissue.com](https://gitissue.com/)
@@ -30,3 +38,6 @@
 [Mathias' blog](https://mathiasbynens.be/)
 
 [知乎专栏——初级前端工程师](https://zhuanlan.zhihu.com/makewebgreatagain)
+
+[人人网FED博客](https://fed.renren.com/)
+
