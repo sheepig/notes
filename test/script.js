@@ -2,21 +2,37 @@ var App =
     `<div>
         <child
             @hook:created="hookFromApp"
-            :appMsg="msg"
+            v-bind:appmsg="msg"
             @click="clickFromApp">
         </child>
     </div>`;
 
 var Child = Vue.component('child', {
-    template: '<div>{{appMsg}}</div>',
+    template: '<div>{{hello}}<input v-model="hello"></input></div>',
     data: function () {
         return {
-            childMsg: 'msg from child'
+            childMsg: 'msg from child',
+            hello: '',
+            egg: {
+            	e1: 1,
+            	e2: 2
+            }
         }
     },
-    props: ['appMsg'],
+    watch: {
+    	hello: 'ogg'
+    },
+    props: {
+    	appmsg: '',
+    	nothing: {
+    		type: Boolean
+    	}
+    },
     methods: {
         showChildMsg() {
+        },
+        changeHello() {
+        	this.hello = '?';
         }
     },
     created() {

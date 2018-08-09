@@ -7,6 +7,8 @@ Vue Version: `2.3.3` 。
 
 为了方便书写，行文中用 vm 指代 Vue 实例。
 
+------
+
 ## new Vue(options)
 
 每一 Vue 实例，都是通过 Vue 构造函数创建的。
@@ -34,6 +36,8 @@ renderMixin(Vue);
 
 字面意义上理解，这里对以后通过 `new Vue()` 创建成的 vm ，初始化一系列属性、方法、生命周期，最后挂载。
 
+------
+
 ### initMixin(Vue)
 
 在这个方法中，定义了 Vue 原型对象上的方法 `_init` 。
@@ -51,6 +55,8 @@ renderMixin(Vue);
  - initProvide(vm)
  - callHook(vm, 'created')
  - vm.$mount
+
+------
 
 #### merge options
 
@@ -85,6 +91,8 @@ var defaultStrat = function (parentVal, childVal) {
 
 实际上做的是先把 perent 的 key-value 放到一个空对象（最终返回的对象），再把 child 中 key 的值不存在于刚刚那个对象的 key-value 值放进去。所以如果有同名属性，parent 的会覆盖 child 中的。
 
+------
+
 #### initProxy(vm)
 
 开发环境下会执行这一步。
@@ -101,6 +109,8 @@ vm._renderProxy = new Proxy(vm, handlers);
 其中 getHandler 和 hasHandler 定义了访问 vm 的属性时候的自定义行为。 hasHandler 对给定的属性，如果 vm 有这个属性，且该属性不是一些全局都能访问的方法或类（undefined、parseInt、Date、Array...具体查看 allowedGlobals ），也不是 Vue 对象内部自有属性（`_` 开头，比如 `_isVue` `_self` ...）则返回 true ，否则返回 false 。getHandler 定义 访问 vm 的属性时候的自定义行为。返回对应的属性的值。
 
 这里的 Proxy 就行一道安检，在开发环境时访问 vm 的任何属性的时候，对访问不到的属性打出 warning ，方便开发时候 debug 。
+
+------
 
 #### initLifecycle(vm)
 
@@ -141,6 +151,8 @@ new Vue({
 ![Vnode](./static/Vnode.png)
 
 initLifecycle(vm) 时，vm 的 `watcher` 为空，`_isMounted` `_isDestoryed`  `_isBeingDestoryed` 的标记都为 false，此时组件还未挂载。
+
+------
 
 #### initEvents(vm)
 
@@ -289,6 +301,8 @@ function add (event, fn, once) {
 
 `target` 在这里指向 `Child` 。这个指向是怎么来的【待补充】
 
+------
+
 #### initRender(vm)
 
 在这一步，vm 的 `_VNode` 被初始化为 `null` ；处理 slot 。
@@ -330,6 +344,8 @@ childMsg
 
 这一步只对 vm 的 `$attr` `$listener` 做数据劫持。
 
+------
+
 #### callHook(vm, 'beforeCreated')
 
 ```javascript
@@ -364,11 +380,222 @@ function callHook (vm, hook) {
 
 ![lifeCycle](./static/lifeCycle.png)
 
+------
+
 #### initInjections(vm)
 
 [provide/inject](https://cn.vuejs.org/v2/api/#provide-inject) 主要为高阶插件/组件库提供用例。并不推荐直接用于应用程序代码中。 
 
-数据响应式顺序：`injections` `data/props` `provide` 
+数据响应式顺序：`$attr` `$listener` `injections` `props` `data` `provide`
+
+------
+
+#### initState(vm)
+
+对 `vm` 的 `data` `props` 实现数据响应式。
+
+```javascript
+function initState (vm) {
+  vm._watchers = [];
+  var opts = vm.$options;
+  if (opts.props) { initProps(vm, opts.props); }
+  if (opts.methods) { initMethods(vm, opts.methods); }
+  if (opts.data) {
+    initData(vm);
+  } else {
+    observe(vm._data = {}, true /* asRootData */);
+  }
+  if (opts.computed) { initComputed(vm, opts.computed); }
+  if (opts.watch && opts.watch !== nativeWatch) {
+    initWatch(vm, opts.watch);
+  }
+}
+```
+
+每个 vm 的内部都有一个 _watcher 数组。
+
+##### initProps
+
+初始化 props ：以 Child 为例，给它的 `props` 加上一个我们不用的属性。
+
+```javascript
+props: ['appMsg', 'nothing']
+```
+
+入参 `vm.$options.props` 长这样：
+
+```javascript
+{
+  appMsg: {type: null},
+  nothing: {type: null},
+  __proto__: Object
+}
+```
+
+`vm.$options.propsData` 
+
+```javascript
+{
+  appMsg: 'msg from app'
+}
+```
+
+可以看到 `propsData` 已经把父组件给子组件的 props ，和 `appMsg` （Child 的数据）整合到一起了。没用到的 props ，不会放进 `propsData` 中。
+
+`vm._props` 
+
+![vm._props](./static/vm_props.png)
+
+`vm.$options._propKeys` 初始化为`[]`，最终的值是 `["appMsg", "nothing"]` ，就是我们在 Child 中定义的 props 数组。对入参参数 propsOptions (`vm.$options.props`) 中的每个 key 做 loop 操作时，会把 key push 进 `vm.$options._propKeys` 。
+
+loop 操作：对不同类型的 props 做值的校验和转换，或者说[ prop 验证](https://cn.vuejs.org/v2/guide/components-props.html#Prop-%E9%AA%8C%E8%AF%81)，
+
+假如 vm 的 prop 不是一个简单的字符串数组，而是一个如下对象：
+
+```javascript
+props: {
+  appMsg: '',
+  nothing: {
+    type: Boolean
+  }
+},
+```
+
+处理过后的 key-value 对应如下
+
+```
+key     value
+nothing false
+appMsg  "msg from app"
+```
+
+如果定义的 `props` 对象中，key 有 `default` `validator` `require` 选项，会按照既定规则校验。
+
+注意 reserved attribute 不能用在 props 。
+
+```javascript
+var isReservedAttribute = makeMap('key,ref,slot,slot-scope,is');
+```
+
+子组件内不能修改 props ，"Avoid mutating a prop directly since the value will be overwritten whenever the parent component re-renders. "
+
+对于静态 props ，在 `Vue.extend()` 的时候，已经挂在 vm 实例之下，也就是通过 `vm.appMsg` `vm.nothing` 可以访问到 props 的值。所以在这里只会对代理动态 props ，使得可以通过 `vm.key` 访问 `vm._props.key` 。
+
+##### initMethods
+
+最终 methods 中所有方法也都会代理在 vm 对象下。实际上是通过 bind 方法。（Function.prototype.bind || polyfill bind）
+
+```javascript
+vm[key] = methods[key] == null ? noop : bind(methods[key], vm);
+```
+
+所以 props 和 methods 中的 key 不可以同名。vm （Vue实例），那么 Vue 原型对象上的方法，methods 中的方法也不可以和它们重名。
+
+##### initData
+
+同样会对 data 做校验。data 不能和 methods props 或者 reserved key 重名。如果 data 是一个函数，还需要取它返回的对象。校验完成后设置代理，使得可以通过 `vm.key` 访问 `vm._data.key` 。
+
+```javascript
+observe(data, true /* asRootData */);
+```
+
+##### initComputed
+
+这里不是服务端渲染环境，为 `vm._computedWatchers` 创建 Watcher 实例，最后代理 computed ，使得可以通过 `vm.key` 访问 `computed[key]` 。
+
+##### initWatch
+
+为需要被 watch 的属性（key）和 watch 时监听动作 handler 创建 watcher 。`createWatcher(vm, key, handler)`
+
+```javascript
+function createWatcher (
+  vm,
+  expOrFn,
+  handler,
+  options
+) {
+  if (isPlainObject(handler)) {
+    options = handler;
+    handler = handler.handler;
+  }
+  if (typeof handler === 'string') {
+    handler = vm[handler];
+  }
+  console.log(expOrFn)
+  console.log(handler)
+  console.log(options)
+  return vm.$watch(expOrFn, handler, options)
+}
+```
+
+可以发现 watch 的写法不止支持官方文档给的形式，即
+
+```javascript
+data() {
+  return {
+    hello: ''
+  }
+}
+```
+
+```javascript
+watch: {
+  hello: function() {
+    return this.hello + ' world'
+  }
+}
+```
+
+watch 对象的 key ，可以是数组
+
+```javascript
+watch: {
+  hello: [
+    function() {}
+  ]
+}
+```
+
+watch 对象的 key ，可以是对象
+
+```javascript
+watch: {
+  hello: {
+    handler: function() { // 这里不能用箭头函数
+      console.log(this);  // 当前 vm
+    },
+    immediate: true // 表示立刻执行
+  }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

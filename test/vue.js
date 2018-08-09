@@ -970,6 +970,7 @@ function defineReactive (
   customSetter,
   shallow
 ) {
+  
   var dep = new Dep();
 
   var property = Object.getOwnPropertyDescriptor(obj, key);
@@ -3424,7 +3425,6 @@ function initComputed (vm, computed) {
   var watchers = vm._computedWatchers = Object.create(null);
   // computed properties are just getters during SSR
   var isSSR = isServerRendering();
-
   for (var key in computed) {
     var userDef = computed[key];
     var getter = typeof userDef === 'function' ? userDef : userDef.get;
@@ -3457,6 +3457,7 @@ function initComputed (vm, computed) {
         warn(("The computed property \"" + key + "\" is already defined as a prop."), vm);
       }
     }
+    console.log(vm)
   }
 }
 
@@ -3562,6 +3563,9 @@ function createWatcher (
   if (typeof handler === 'string') {
     handler = vm[handler];
   }
+  console.log(expOrFn)
+  console.log(handler)
+  console.log(options)
   return vm.$watch(expOrFn, handler, options)
 }
 
