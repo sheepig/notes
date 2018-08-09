@@ -970,7 +970,7 @@ function defineReactive (
   customSetter,
   shallow
 ) {
-  
+  console.log(obj, key)
   var dep = new Dep();
 
   var property = Object.getOwnPropertyDescriptor(obj, key);
