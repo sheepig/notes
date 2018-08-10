@@ -116,6 +116,7 @@ defineReactive 支持自定义的 getter/setter 。
 在 initData 对 data (`vm._data`) observe ，标记 asRootData 。
 在 defineReactive 对 val（参数，对象 key——val）observe ，不标记 asRootData 。实际上是对 inject/provide 的 observe 。
 
+可以看到 Observer 原型对象上有两个方法：`observeArray` `walk` 。`walk` 其实就是深度遍历 observe 的对象，对每一个属性 defineReactive 。如果遇到数组则依次 observe 每一项。
 
 
 
