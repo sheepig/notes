@@ -1,4 +1,4 @@
- 一个 vm ，什么属性会被 defineReactive ？
+一个 vm ，什么属性会被 defineReactive ？
 
 | obj | key&value|
 |-----|----------|
@@ -72,4 +72,56 @@ function defineReactive (
 一个 vm ，创建的 Dep 对象（订阅者）的数量，最基本就有 `vm.$attr` `vm.$listener` 带来的两个。data 的数据响应式是“深层次”的，也就是无论 data 对象嵌套多深，每一个嵌套的 key 都有一个 Dep 实例订阅。
 
 defineReactive 支持自定义的 getter/setter 。
+
+### Dep
+
+![Dep](./static/Dep.png)
+
+每一个 Dep 实例都维护一个 subs 数组，存放 Watcher 实例。
+
+### Observer
+
+![Observer](./static/Observer.png)
+
+与之相关主要是一个 observe 方法。该方法对一个字面量对象或者对象数组“深度observe”。具体例子如下
+
+```javascript
+{
+    name: 'yang',
+    city: 'Beijing',
+    friends: [{
+        name: 'Lizi',
+        city: 'unknow'
+    }, {
+        name: 'Judy',
+        city: 'sg'
+    }],
+    contact: {
+        phone: '1234566654',
+        wechat: 'xv221',
+        qq: '1123342',
+        emai: {
+            qq: '2323@qq.com',
+            netease: '235r@163.com'
+        }
+    }
+}
+```
+
+![observer-order](./static/observer-order.png)
+
+最外层对象，认为是一个根对象，调用 observe 时候如果标记了 asRootData ，每次 observe 都会刷新 vmCount 的值。总的来看，observe 的顺序是自上而下，从里到外的。
+
+在 initProps-validateProp 对 props 对象中每一个对象 observe ，不标记 asRootData 。
+在 initData 对 data (`vm._data`) observe ，标记 asRootData 。
+在 defineReactive 对 val（参数，对象 key——val）observe ，不标记 asRootData 。实际上是对 inject/provide 的 observe 。
+
+
+
+
+
+
+
+
+
 

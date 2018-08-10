@@ -957,6 +957,7 @@ function observe (value, asRootData) {
   if (asRootData && ob) {
     ob.vmCount++;
   }
+  console.log(ob)
   return ob
 }
 
@@ -970,7 +971,6 @@ function defineReactive (
   customSetter,
   shallow
 ) {
-  console.log(obj, key)
   var dep = new Dep();
 
   var property = Object.getOwnPropertyDescriptor(obj, key);
@@ -3457,7 +3457,6 @@ function initComputed (vm, computed) {
         warn(("The computed property \"" + key + "\" is already defined as a prop."), vm);
       }
     }
-    console.log(vm)
   }
 }
 
@@ -3563,9 +3562,6 @@ function createWatcher (
   if (typeof handler === 'string') {
     handler = vm[handler];
   }
-  console.log(expOrFn)
-  console.log(handler)
-  console.log(options)
   return vm.$watch(expOrFn, handler, options)
 }
 
