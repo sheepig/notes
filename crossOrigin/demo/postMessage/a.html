@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>port 3000</title>
+</head>
+<body>
+	<h1>port 3000</h1>
+	<iframe id="iframe" src="http://localhost:3001"></iframe>
+<script>
+var data = {
+	msg: "It's port 3000"
+};
+var iframe = document.getElementById('iframe');
+iframe.onload = function() {
+	iframe.contentWindow.postMessage(JSON.stringify(data), 'http://localhost:3001');
+}
+
+window.addEventListener('message', function(e) {
+	alert(e.data);
+});
+</script> 
+</body>
+</html>

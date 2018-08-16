@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>port 3000</title>
+</head>
+<body>
+	<h1>port 3000</h1>
+<script>
+	var script = document.createElement('script');
+	script.type='text/javascript';
+	script.src = 'http://localhost:3001/info?user=admin&callback=onBack';
+	document.head.appendChild(script);
+	function onBack(res) {
+		alert(JSON.stringify(res));
+	}
+</script>
+</body>
+</html>

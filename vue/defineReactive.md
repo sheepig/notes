@@ -73,15 +73,11 @@ function defineReactive (
 
 defineReactive 支持自定义的 getter/setter 。
 
-### Dep
-
-![Dep](./static/Dep.png)
-
-每一个 Dep 实例都维护一个 subs 数组，存放 Watcher 实例。
 
 ### Observer
 
 ![Observer](./static/Observer.png)
+
 
 与之相关主要是一个 observe 方法。该方法对一个字面量对象或者对象数组“深度observe”。具体例子如下
 
@@ -117,6 +113,16 @@ defineReactive 支持自定义的 getter/setter 。
 在 defineReactive 对 val（参数，对象 key——val）observe ，不标记 asRootData 。实际上是对 inject/provide 的 observe 。
 
 可以看到 Observer 原型对象上有两个方法：`observeArray` `walk` 。`walk` 其实就是深度遍历 observe 的对象，对每一个属性 defineReactive 。如果遇到数组则依次 observe 每一项。
+
+### 订阅者 Dep
+
+![Dep](./static/Dep.png)
+
+每一个 Dep 实例都维护一个 subs 数组，存放 Watcher 实例。
+
+![reactiveSetter](./static/getting.png)
+
+定义 getter 的时候，订阅——依赖收集。
 
 
 

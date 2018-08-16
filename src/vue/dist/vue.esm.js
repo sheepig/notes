@@ -965,7 +965,6 @@ function defineReactive (
   shallow
 ) {
   var dep = new Dep();
-
   var property = Object.getOwnPropertyDescriptor(obj, key);
   if (property && property.configurable === false) {
     return

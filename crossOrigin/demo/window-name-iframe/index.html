@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>port 3000</title>
+</head>
+<body>
+	<h1>port 3000</h1>
+<script>
+var proxy = function(url, callback) {
+	var state = 0;
+	var iframe = document.createElement('iframe');
+
+	// loaing cross-origin page
+	iframe.src=url;
+
+	iframe.onload = function() {
+		if (state === 1) {
+			// second loaded: proxy page ,get data from window.name
+			callback(iframe.contentWindow.name);
+			destoryFrame();
+
+		} else if (state === 0) {
+			// first loaded: cross-origin page, redirect to the proxy page(in same origin)
+			iframe.contentWindow.location = 'http://localhost:3000/proxy.html';
+			state = 1;
+		}
+	}
+
+	document.body.appendChild(iframe);
+
+	function destoryFrame() {
+		iframe.contentWindow.document.write('');
+		iframe.contentWindow.close();
+		document.body.removeChild(iframe);
+	}
+}
+
+proxy('http://localhost:3001/b.html', function(data) {
+	alert(data);
+});
+</script>
+</html>
