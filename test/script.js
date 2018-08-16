@@ -1,33 +1,20 @@
 var App = 
     `<div>
         <child
-           
             @click="clickFromApp">
         </child>
+        <component-a></component-a>
     </div>`;
 
+var componentA = Vue.component('component-a', {
+    template: '<div>componentA</div>'
+});
+
 var Child = Vue.component('child', {
-    template: '<div>{{name}}></div>',
+    template: '<div>{{name}}</div>',
     data: function () {
         return {
 		    name: 'yang',
-		    city: 'Beijing',
-		    friends: [{
-		        name: 'Lizi',
-		        city: 'unknow'
-		    }, {
-		        name: 'Judy',
-		        city: 'sg'
-		    }],
-		    contact: {
-		    	phone: '1234566654',
-		    	wechat: 'xv221',
-		    	qq: '1123342',
-		    	emai: {
-		    		qq: '2323@qq.com',
-		    		netease: '235r@163.com'
-		    	}
-		    }
         }
     },
     methods: {
@@ -42,6 +29,7 @@ var Child = Vue.component('child', {
     },
 });
 
+
 new Vue({
     el: '#app',
     template: App,
@@ -50,7 +38,8 @@ new Vue({
         }
     },
     components: {
-        Child
+        Child,
+        componentA
     },
     methods: {
         hookFromApp() {

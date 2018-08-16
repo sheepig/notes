@@ -521,9 +521,6 @@ function createWatcher (
   if (typeof handler === 'string') {
     handler = vm[handler];
   }
-  console.log(expOrFn)
-  console.log(handler)
-  console.log(options)
   return vm.$watch(expOrFn, handler, options)
 }
 ```

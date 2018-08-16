@@ -692,6 +692,7 @@ Dep.prototype.removeSub = function removeSub (sub) {
 
 Dep.prototype.depend = function depend () {
   if (Dep.target) {
+    console.log(this)
     Dep.target.addDep(this);
   }
 };
@@ -700,6 +701,7 @@ Dep.prototype.notify = function notify () {
   // stabilize the subscriber list first
   var subs = this.subs.slice();
   for (var i = 0, l = subs.length; i < l; i++) {
+    console.log(subs[i])
     subs[i].update();
   }
 };
@@ -957,7 +959,6 @@ function observe (value, asRootData) {
   if (asRootData && ob) {
     ob.vmCount++;
   }
-  console.log(ob)
   return ob
 }
 
@@ -972,7 +973,7 @@ function defineReactive (
   shallow
 ) {
   var dep = new Dep();
-
+  // console.log(obj, 'dep created')
   var property = Object.getOwnPropertyDescriptor(obj, key);
   if (property && property.configurable === false) {
     return
@@ -3164,6 +3165,7 @@ Watcher.prototype.addDep = function addDep (dep) {
     this.newDepIds.add(id);
     this.newDeps.push(dep);
     if (!this.depIds.has(id)) {
+      console.log(this)
       dep.addSub(this);
     }
   }
