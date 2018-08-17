@@ -1,32 +1,31 @@
 var App = 
     `<div>
-        <child
-            @click="clickFromApp">
-        </child>
+        <child></child>
         <component-a></component-a>
     </div>`;
 
 var componentA = Vue.component('component-a', {
-    template: '<div>componentA</div>'
+    template: '<div>{{name}}</div>',
+    data: function() {
+        return {
+            name: 'component-A'
+        }
+    }
 });
 
 var Child = Vue.component('child', {
-    template: '<div>{{name}}</div>',
+    template: '<div><span>{{name}}</span><span>{{desc}}</span><button @click="change">change name</button></div>',
     data: function () {
         return {
 		    name: 'yang',
+            desc: 'child'
         }
     },
     methods: {
-        showChildMsg() {
-        },
-        changeHello() {
+        change() {
+            this.name = "woo";
         }
-    },
-    created() {
-    },
-    mounted() {
-    },
+    }
 });
 
 
@@ -40,16 +39,5 @@ new Vue({
     components: {
         Child,
         componentA
-    },
-    methods: {
-        hookFromApp() {
-        	console.log('hookFromApp')
-        },
-        clickFromApp() {
-        }
-    },
-    created() {
-    },
-    mounted() {
     }
 });

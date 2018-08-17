@@ -124,6 +124,101 @@ defineReactive 支持自定义的 getter/setter 。
 
 定义 getter 的时候，订阅——依赖收集。
 
+看一个简单的例子
+
+```javascript
+var App = 
+    `<div>
+        <child></child>
+        <component-a></component-a>
+    </div>`;
+
+var componentA = Vue.component('component-a', {
+    template: '<div>{{name}}</div>',
+    data: function() {
+        return {
+            name: 'component-A'
+        }
+    }
+});
+
+var Child = Vue.component('child', {
+    template: '<div><span>{{name}}</span><span>{{desc}}</span></div>',
+    data: function () {
+        return {
+        name: 'yang',
+            desc: 'child'
+        }
+    }
+});
+
+new Vue({
+    el: '#app',
+    template: App,
+    data: function(){
+        return {
+        }
+    },
+    components: {
+        Child,
+        componentA
+    }
+});
+```
+
+Dep.target 是 Watcher 的实例，可以通过 `Dep.target.vm._uid` ，定位到当前处理的依赖。上面例子，dep 的数量和 id 如下：
+
+```
+obj&&key                                                dep.id
+                                                        
+App                                                     
+|-- $attr                                               0
+|-- $listener                                           1
+
+Child
+|-- $attr                                               3
+|-- $listener                                           4
+
+// Child 的 data
+{name: "yang", desc: "child", __ob__: Observer}
+|-- name                                                6
+|-- desc                                                7
+
+// 第一次 dep.depend()
+// Dep.target.vm 指向 Child 
+// Dep.target.depIds: Set{6, 7}
+
+
+componentA
+|-- $attr                                               8
+|-- $listener                                           9
+
+//componentA 的 data
+{name: "component-A", __ob__: Observer}
+|-- name                                                11
+
+// 第二次 dep.depend()
+// Dep.target.vm 指向 componentA
+// Dep.target.depIds: Set{11}
+```
+
+为了更好玩一些，把 Child 视图改一下：
+
+```javascript
+// ...
+template: '<div><span>{{name}}</span></div>',
+```
+
+Child 的 desc 并没有在视图中用到，此时改变 desc ，不会触发更新。同时可以观察到第一次 dep.depend() 的时候，`Dep.target.depIds` 的值是 `Set{6}` ，dep7 订阅了 desc，但是 Watcher 不会收集这个依赖，因为没用到。就像`$attr` `$listener` 也没有被 Watcher 监控。
+
+当数据被“set”的时候，调用 reactiveSetter 。此时有一个比较，如果新值和旧值严格相等，则什么也不做。否则，订阅者通知每一个订阅了这个数据的 Watcher ，更新视图。dep.notify() ，结果就是 dep.subs[] 中，每一个 Watcher 实例执行 update 。
+
+update的过程【待补充】
+
+
+
+
+
 
 
 
