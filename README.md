@@ -27,6 +27,10 @@
 
 [浏览器的工作原理](https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/)
 
+[浏览器缓存机制剖析](http://louiszhai.github.io/2017/04/07/http-cache/)
+
+[从Chrome源码看DNS解析过程](https://fed.renren.com/2018/01/01/chrome-dns-resolve/)
+
 
 
 # 资讯

@@ -33,6 +33,7 @@
 ## 未分类
 
 [详解Object.create(null)](./Object_create/note.md)
+[ES6 class & class extends & rest arguments](./syntactic-sugar/note.md)
 
 ## 作用域相关问题
 
