@@ -1,0 +1,27 @@
+{
+  "name": "notes",
+  "version": "1.0.0",
+  "description": "opps!",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "app": "supervisor express/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sheepig/notes.git"
+  },
+  "author": "sheepig",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sheepig/notes/issues"
+  },
+  "homepage": "https://github.com/sheepig/notes#readme",
+  "devDependencies": {
+    "express": "^4.16.3",
+    "supervisor": "^0.12.0"
+  }
+}
