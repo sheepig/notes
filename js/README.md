@@ -10,6 +10,8 @@
 
 [创建对象之组合模式](./class-extend-methods/_4constructor_prototype.md)
 
+[new 操作符，__proto__，prototype](./class-extend-methods/_6new-operator.md)
+
 ## 正则
 
 [正则解析一个完整的url](./regexp-url/note.md)
