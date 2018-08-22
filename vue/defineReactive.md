@@ -114,6 +114,33 @@ defineReactive 支持自定义的 getter/setter 。
 
 可以看到 Observer 原型对象上有两个方法：`observeArray` `walk` 。`walk` 其实就是深度遍历 observe 的对象，对每一个属性 defineReactive 。如果遇到数组则依次 observe 每一项。
 
+vm 本质是个对象，在初始化之外，通过 `vm.xx` 的方法添加的属性不会被设置数据响应。
+
+```javascript
+data: function() {
+  return {
+    a: 'reactive'     // 响应式
+  }
+}
+vm.b = 'not reactive' // 非响应式
+```
+
+但是向已设置数据响应式的对象/数组新增项/删除项，会触发它们的 `getter/setter` ，因为它们也被 observe 了，即使看起来，我们好像只使用了它们里面的属性，或项。
+
+```javascript
+// 新增的 friends[2] 也会被 observe ，（有自己的 getter/setter）
+this.friends.push({
+  name: 'Ann',
+  city: 'LA'
+});
+
+// 新增的 contact.zipCode 也会被 observe ，（有自己的 getter/setter）
+this.contact.zipCode = '223312';
+
+this.friends[2].city = 'unknow'; // 触发 getter/setter
+this.contact.zipCode = '111111'; // 触发 getter/setter
+```
+
 ### 订阅者 Dep
 
 ![Dep](./static/Dep.png)

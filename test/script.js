@@ -1,80 +1,65 @@
-// var App = 
-//     `<div>
-//         <child></child>
-//         <component-a></component-a>
-//     </div>`;
+var App = 
+    `<div>
+        <h1>{{ msg }}</h1>
+        <child></child>
+    </div>`;
 
-// var componentA = Vue.component('component-a', {
-//     template: '<div>{{name}}</div>',
-//     data: function() {
-//         return {
-//             name: 'component-A'
-//         }
-//     }
-// });
+var ComponentA = Vue.component('component-a', {
+    template: '<div>component-a</div>'
+})
 
-// var Child = Vue.component('child', {
-//     template: '<div><span>{{name}}</span><span>{{desc}}</span><button @click="change">change name</button></div>',
-//     data: function () {
-//         return {
-// 		    name: 'yang',
-//             desc: 'child'
-//         }
-//     },
-//     methods: {
-//         change() {
-//             this.name = "woo";
-//         }
-//     }
-// });
-
-
-// new Vue({
-//     el: '#app',
-//     template: App,
-//     data: function(){
-//         return {
-//         }
-//     },
-//     components: {
-//         Child,
-//         componentA
-//     }
-// });
-
-function Test(value) {
-    this.value = value;
-}
-Test.prototype.getValue = function() {
-    return this.value;
-}
-
-// var t = new Test();
-
-function _new(constructor) {
-    var obj = new Object();
-    var args = [...arguments].slice(1);
-    obj.__proto__ = constructor.prototype;
-    constructor.apply(obj, args);
-    return obj;
-}
-
-var t = _new(Test, 4);
-
-console.log(t.value);
-console.log(t.getValue());
+var Child = Vue.component('child', {
+    template: 
+    		`<div>
+    			<h3>{{name}}</h3>
+                <component-a/>
+    		</div>`,
+    components: {
+        ComponentA
+    },
+    data: function () {
+        return {
+		    name: 'child',
+            list: [{
+            	key: 1,
+            	title: 'item1'
+            }, {
+            	key: 2,
+            	title: 'item2'
+            }],
+            obj: {
+            	a: 'aa'
+            }
+        }
+    },
+    methods: {
+        addItem() {
+        	this.list.push({
+        		key: 3,
+        		title: 'item3'
+        	});
+        	this.obj.b = 'bb'
+        },
+        changeItem3() {
+        	this.list[2].title = 'new item3';
+        	this.obj.b = 'BBB'
+        }
+    }
+});
 
 
-
-
-
-
-
-
-
-
-
-
+var App = new Vue({
+    el: '#app',
+    template: App,
+    data: function(){
+        return {
+            msg: 'App'
+        }
+    },
+    components: {
+        Child,
+    }
+});
 
 
 

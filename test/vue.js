@@ -770,7 +770,7 @@ Object.defineProperties( VNode.prototype, prototypeAccessors );
 
 var createEmptyVNode = function (text) {
   if ( text === void 0 ) text = '';
-
+  console.log('Empty Node', text);
   var node = new VNode();
   node.text = text;
   node.isComment = true;
@@ -991,7 +991,6 @@ function defineReactive (
     get: function reactiveGetter () {
       var value = getter ? getter.call(obj) : val;
       if (Dep.target) {
-        console.log(Dep.target)
         dep.depend();
         if (childOb) {
           childOb.dep.depend();
@@ -2786,6 +2785,7 @@ function mountComponent (
     };
   } else {
     updateComponent = function () {
+      // console.log(vm._uid, vm)
       vm._update(vm._render(), hydrating);
     };
   }
@@ -4563,6 +4563,7 @@ function renderMixin (Vue) {
     }
     // set parent
     vnode.parent = _parentVnode;
+    console.log(vnode)
     return vnode
   };
 }
