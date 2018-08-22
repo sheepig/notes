@@ -35,7 +35,10 @@
 ## 未分类
 
 [详解Object.create(null)](./Object_create/note.md)
+
 [ES6 class & class extends & rest arguments](./syntactic-sugar/note.md)
+
+[同步渲染和异步渲染对 DOM 的阻塞](./async-render/node.md)
 
 ## 作用域相关问题
 

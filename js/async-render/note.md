@@ -195,10 +195,24 @@ console.log('after script');
 
 ------
 
+### 优化
+
+ - 外链样式脚本放在 `<head></head>` 中，因为外链样式不阻塞 DOM 解析，这样做也可以避免样式跳动。
+ - 对整个页面样式的调整（会触发回流）如调整 rem 计算策略的 script 脚本，可以放在 `<head></head>` 中，这里可以用内联的方法（虽然不是最佳），阻塞后续 DOM 解析，避免样式跳动。也可以用外链脚本， 加上 `async` 标签可以让脚本的下载不占用 DOM 解析线程，在下载完后立刻执行。
+ - 使用 CDN 。不局限于样式和脚本，图片也可以。
+ -  `async` `defer` `preload` 。前两个只能作用于脚本
+
+![async vs defer](https://segmentfault.com/img/bVWhRl?w=801&h=814)
+
+没有标记加载策略的 `script` 和 `async` 都会阻塞 DOM 解析，不同在于 `async` 的下载相对于 DOM 解析是异步的。`defer` 的下载也是异步的，但是下载结束后不立刻执行，而且还会按照 `script` 标签的顺序执行。（这一点 `async` 就不能保证）。
+ 
+
 
 
 > 参考文章
 [CSS/JS 阻塞 DOM 解析和渲染](https://harttle.land/2016/11/26/static-dom-render-blocking.html)
 [异步渲染的下载和阻塞行为](https://harttle.land/2016/11/26/dynamic-dom-render-blocking.html)
 [异步渲染DOM元素的加载时机](http://www.qingpingshan.com/m/view.php?aid=169704)
-[How Browsers Work: Behind the scenes of modern web browsers: The order of processing scripts and style sheets](https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/#The_order_of_processing_scripts_and_style_sheets)
+[How Browsers Work: Behind the scenes of modern web browsers #The order of processing scripts and style sheets](https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/#The_order_of_processing_scripts_and_style_sheets)
+[有一种优化，叫Preload](https://mp.weixin.qq.com/s/5cnZ9_67-Ikwg4GQ-2nhuw)
+[Tencent CDN](https://cloud.tencent.com/document/product/228/2939#.E5.8A.A0.E9.80.9F.E5.8E.9F.E7.90.86)
