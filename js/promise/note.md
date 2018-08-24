@@ -36,6 +36,8 @@ Promise 代表一个异步操作的最终结果。操作一个 promise 的主要
 
 这里所说的“不可更改”，指的是自身不变性（比如 `===` ），但不需要遵循深层不可变性。
 
+------
+
 ##### `then` 方法
 
 promise 必须提供一个 `then` 方法，用以访问当前的/最终的 value 或 reason 。
@@ -67,9 +69,70 @@ promise.then(onFulfilled, OnRejected)
 
 `onFulfilled` 和 `onRejected` 必须以函数的形式调用（不能有 `this` ，严格模式下 `this` 为 `undefined` ，非严格模式下 `this` 指向 `global` 对象）。
 
+`then` 可能在同个 promise 上多次调用
+
+ - 如果/当 promise 转换为 fulfilled ，所有对应的 `onFulfilled` 回调会按照 `then` 发起的顺序调用。
+ - 如果/当 promise 转换为 rejected ，所有对应的 `onRejected` 回调会按照 `then` 发起的顺序调用。
+
+`then` 必须返回一个 promise
+
+```javascript
+promise2 = promise1.then(onFulfilled, onRejected);
+```
+
+ - `onFulfilled` 或 `onRejected` 之一返回一个 value ，则执行 Promise Resolution Procedure `[[Resolve]](promise2, x)` 
+ - `onFulfilled` 或 `onRejected` 之一抛出一个异常 `e` ，`promise2` 必须被 rejected ，并且将  `e` 作为 reason 传入
+ - 如果 `onFulfilled` 不是一个函数而且 `promise1` 转换为 fulfilled ，`promise2` 必须转换为 fulfilled ，并且将 `promise1` 的 value 传入。
+ - 如果 `onRejected` 不是一个函数而且 `promise1` 转换为 rejected ，`promise2` 必须转换为 rejected ，并且将 `promise1` 的 reason 传入。
+
+------
+
+##### Promise Resolution Procedure
+
+**Promise Resolution Procedure** 是一个抽象的操作，输入是一个 promise 和一个 value ， 我们用 `[[Resolve]](promise, x)` 表示，如果 `x` 是 thenable 的，它做此尝试：在 `x` 表现得像一个 promise 的前提下，让  `promise` 采用 `x` 的状态( `state` )。否则将 `promise` 的状态转换为 fulfilled ，`x` 作为 value 。
+
+执行 `[[Resolve]](promise, x)` ，会执行以下步骤：
+
+如果 `promise` 和 `x` 指向同个对象，以一个 `TypeError` 为 reason ，拒绝这个 `promise` 。
+
+1. 如果 `x` 是一个 promise ，采用它的 state
+
+ - 如果 `x` 处于 pending 中，`promise` 必须保持 pending 直至 `x` 转换为 fulfilled 或 rejected 
+ - 如果/当 `x` 转换为 fulfilled ，以相同的 value ，履行这个 `promise` （fulfill `promise` with the same value）
+ - 如果/当 `x` 转换为 rejected ，以相同的 reason ，拒绝这个 `promise` （reject `promise` with the same reason）
 
 
+2. 如果 x 是一个对象或者函数
 
+ - 令 `then` = `x.then`
+ - 如果访问 `x.then` 会抛出一个异常 `e` ，以 `e` 为 reason 拒绝这个 promise 
+ - 如果 then 是一个函数，将它的 `this` 绑定为 `x` 并调用它，第一个参数是 `resolvePromise` ，第二个参数是 `rejectedPromise` 。
+
+```javascript
+then.call(x, resolvePromise, rejectedPromise)
+```
+如果 `resolvePromise` 调用，调用返回值是 `y` ，执行 `[[Resolve]](promise, y)`
+
+如果 `rejectedPromise` 调用，调用返回值是 `r` ，以 `r` 为由拒绝 `promise` 
+
+如果 `resolvePromise` `rejectedPromise` 都被调用，或者以相同参数多次调用，则只采用第一次调用，忽略其他调用
+
+如果调用 then 抛出一个异常 e ：
+
+如果 `resolvePromise` `rejectedPromise` 都已经被调用，忽略 e 
+
+否则，以 `e` 为 reason 拒绝这个 `promise` 
+
+ - 如果 `then` 不是一个函数，以 `x` 履行这个 `promise` （fulfill promise with x）
+
+3. 如果 x 既不是函数也不是对象，以 `x` 履行这个 `promise` （fulfill promise with x）
+
+### 实现 Promise
+
+Promise 应该是一个构造函数
+
+```javascript
+```
 
 
 

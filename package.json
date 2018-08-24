@@ -23,5 +23,8 @@
   "devDependencies": {
     "express": "^4.16.3",
     "supervisor": "^0.12.0"
+  },
+  "dependencies": {
+    "lie": "^3.3.0"
   }
 }
