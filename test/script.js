@@ -1,5 +1,13 @@
+let resolver = function(resolve) {
+	var number = 0;
+    resolve(++number);
+};
 
-console.log(Promise);
+new Promise(resolver).then((num) => {
+	console.log(num);
+}).then((num) => {
+	console.log(num)
+})
 
 
 

@@ -442,47 +442,20 @@ console.log(2);
 
 6. 清空 queue 。
 
+#### 异步 resolver
 
+上面例子的中，调用 `resolve` 的时候是同步的，如果调用 `resolve` 是异步的，那么在 `then` 方法中，promise 的状态仍为 PENDING ，这时候 promise.queue 就派上用场了。
 
+![](./resolver.png)
 
+只是把异步 resolver 和 promise 的信息包装成一个 QueueItem ，压入 promise.queue 。
 
+定时器结束后，promise 的状态才变成 RESOLVED ，此时才注册 then 回调。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![](./async-resolver.png)
 
 >参考
 [从一道Promise执行顺序的题目看Promise实现](https://fed.renren.com/2018/03/10/promise/)
 [InterviewMap-Promise 实现](https://yuchengkai.cn/docs/zh/frontend/#promise-%E5%AE%9E%E7%8E%B0)
 [Promises/A+](https://promisesaplus.com/)
+[详解JavaScript中的Event Loop（事件循环）机制](https://zhuanlan.zhihu.com/p/33058983)
