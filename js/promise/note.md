@@ -127,12 +127,329 @@ then.call(x, resolvePromise, rejectedPromise)
 
 3. 如果 x 既不是函数也不是对象，以 `x` 履行这个 `promise` （fulfill promise with x）
 
-### 实现 Promise
+### 解析 lie 库的 Promise 实现
 
-Promise 应该是一个构造函数
+#### 状态
+
+Promise 任何实例 promise （接下来用 promise 指代 Promise 实例）在一个时刻，只能是三种状态之一：
 
 ```javascript
+var REJECTED = ['REJECTED'];
+var FULFILLED = ['FULFILLED'];
+var PENDING = ['PENDING'];
 ```
+
+#### Promise 构造函数
+
+```javascript
+var p1 = new Promise(function (resolve, reject) {
+	console.log(1);
+	resolve(4);
+	console.log(2)
+});
+p1.then(num => {
+	console.log(num);
+})
+
+console.log(3);
+```
+
+输出结果是 1234 。入参的匿名函数似乎是立刻执行的（ 1，2 最先被打印），但是 resolve 之后没有立刻 then ，而是先执行完所有同步代码（打印 3 ），再去调用一个回调（打印 4 ）。
+
+看一下 Promise 的构造函数
+
+```javascript
+function Promise(resolver) {
+  if (typeof resolver !== 'function') {
+    throw new TypeError('resolver must be a function');
+  }
+  this.state = PENDING;
+  this.queue = [];
+  this.outcome = void 0;
+  if (resolver !== INTERNAL) {
+    safelyResolveThenable(this, resolver);
+  }
+}
+```
+
+新创建的 promise 的状态，会被初始化为 PENDING 。入参 resolver 就是 `function(resolve, reject) { // ... }` 这样的一个函数，看一下 `safelyResolveThenable(this, resolver)` 做了什么。
+
+
+```javascript
+function safelyResolveThenable(self, thenable) {
+  // Either fulfill, reject or reject with error
+  var called = false;
+  function onError(value) {
+    if (called) {
+      return;
+    }
+    called = true;
+    handlers.reject(self, value);
+  }
+
+  function onSuccess(value) {
+    if (called) {
+      return;
+    }
+    called = true;
+    handlers.resolve(self, value);
+  }
+
+  function tryToUnwrap() {
+    thenable(onSuccess, onError);
+  }
+
+  var result = tryCatch(tryToUnwrap);
+  if (result.status === 'error') {
+    onError(result.value);
+  }
+}
+```
+
+这里的 thenable 就是传进来的 resolver 。可以看到 thenable 被调用：`var result = tryCatch(tryToUnwrap);` ，
+tryCatch 其实是一个帮助函数，封装了 `func(value)` 的返回结果。
+
+```javascript
+function tryCatch(func, value) {
+  var out = {};
+  try {
+    out.value = func(value);
+    out.status = 'success';
+  } catch (e) {
+    out.status = 'error';
+    out.value = e;
+  }
+  return out;
+}
+```
+
+thenable 执行环境中，以下三个语句按顺序执行。
+
+```javascript
+console.log(1);
+resolve(4);
+console.log(2)
+```
+
+重点看一下 `resolve(4)` ，打断点，最终来到 handlers.resolve 
+
+```javascript
+handlers.resolve = function (self, value) {
+  var result = tryCatch(getThen, value);
+  if (result.status === 'error') {
+    return handlers.reject(self, result.value);
+  }
+  var thenable = result.value;
+
+  if (thenable) {
+    safelyResolveThenable(self, thenable);
+  } else {
+    self.state = FULFILLED;
+    self.outcome = value;
+    var i = -1;
+    var len = self.queue.length;
+    while (++i < len) {
+      self.queue[i].callFulfilled(value);
+    }
+  }
+  return self;
+};
+```
+
+这里 `self = p1` ，`value = 4` ，value 不是一个 thenable 类型（如果是 thenable 的处理？）。最后把 self 的 state 设为 FULFILLED ，把 outcome 赋值为 value ，返回 self 。
+
+其实执行完 `resolve(4)` ，p1 的状态已经变为 FULFILLED ，并且有一个不可变的 value 。
+
+#### Promise.prototype.then
+
+then 方法的最主要作用，是访问一个 promise 最终的 value，或者 reason 。
+
+```javascript
+Promise.prototype.then = function (onFulfilled, onRejected) {
+  // 如果 onFulfilled, onRejected 不是函数，忽略，同时实现透传，即
+  // Promise.then().then(num => {console.log(num);})
+  if (typeof onFulfilled !== 'function' && this.state === FULFILLED ||
+    typeof onRejected !== 'function' && this.state === REJECTED) {
+    return this;
+  }
+
+  // 返回结果是一个 promise ，为了和当前的 promise（即 this） 区分，命名为 promise2
+  var promise2 = new this.constructor(INTERNAL);
+  if (this.state !== PENDING) {
+  	// 只有 promise 的 state 不是 PENDING 时，才会调用 onFulfilled 或者 onRejected
+  	// 当状态为 FULFILLED 时，调用 onFulfilled ，并把 promise 的 value 传递给 onFulfilled
+  	// 当状态为 REJECTED 时，调用 onRejected ，并把 promise 的 reason 传递给 onRejected
+    var resolver = this.state === FULFILLED ? onFulfilled : onRejected;
+    unwrap(promise2, resolver, this.outcome);
+  } else {
+  	// promise 的 state 为 PENDING ，把 promise2，onFulfilled 和 onRejected 包装成一个 QueueItem，
+  	// 压入 promise 的 queue
+    this.queue.push(new QueueItem(promise2, onFulfilled, onRejected));
+  }
+  return promise;
+}
+```
+
+#### nextTick 实现
+
+then 方法有链式传递，前一个 promise 的 value 或 reason 会传递给下一个 promise ， `promise.then(onFulfilled, onRejected)` ，真正在操作 value 和 reason 的其实是新的 promise（promise2）。
+
+```javascript
+function unwrap(promise, func, value) {
+  immediate(function () {
+    var returnValue;
+    try {
+      // 新的 promise 的状态是变为 FULFILLED 还是 REJECTED，和它处理的是 value 还是 reason 没有必然联系，
+      // 也就是说它的状态转换不受前一个 promise 的状态影响，它只根据前一个 promise 提供的 value/reason，分别调用自己不同的处理方法
+      // 如果处理成功，比如成功处理前一个 promise 传过来的 reason ，那么新的 promise 会被 resolve
+      // 否则 reject
+      returnValue = func(value);
+    } catch (e) {
+      return handlers.reject(promise, e);
+    }
+    if (returnValue === promise) {
+      handlers.reject(promise, new TypeError('Cannot resolve promise with itself'));
+    } else {
+      handlers.resolve(promise, returnValue);
+    }
+  });
+}
+```
+
+`immediate` 注册一个异步方法，使得：当且仅当执行上下文只有平台代码的时候，执行 then 的回调 onFulfilled 或 onRejected 。类似 setTimeout 0 ，但又不仅仅如此。
+
+```javascript
+function immediate(task) {
+  if (queue.push(task) === 1 && !draining) {
+    scheduleDrain();
+  }
+}
+```
+
+其中 `queue` `draining` 是闭包中可以访问的变量。queue 用以保存回调，以便按序执行，draining 标记当前是否有回调执行。
+
+```javascript
+var draining;
+var queue = [];
+```
+
+只有在当前仅有一个任务 task ，并且之前的任务已经全部执行完毕（draining === false），才会调用 `scheduleDrain()` 。
+
+```javascript
+var Mutation = global.MutationObserver || global.WebKitMutationObserver;
+
+{
+  // 浏览器环境 IE11+ 支持，使用 MutationObserver
+  if (Mutation) {
+    var called = 0;
+    var observer = new Mutation(nextTick);
+    var element = global.document.createTextNode('');
+    observer.observe(element, {
+      characterData: true
+    });
+    scheduleDrain = function () {
+      element.data = (called = ++called % 2); // called 的值在 0/1 之间切换
+    };
+  // Node.js 环境，使用 MessageChannel
+  } else if (!global.setImmediate && typeof global.MessageChannel !== 'undefined') {
+    var channel = new global.MessageChannel();
+    channel.port1.onmessage = nextTick;
+    scheduleDrain = function () {
+      channel.port2.postMessage(0);
+    };
+  // 低版本浏览器，使用一个 script 标签，当它插入文档中，它的 readystatechange 事件会触发
+  } else if ('document' in global && 'onreadystatechange' in global.document.createElement('script')) {
+    scheduleDrain = function () {
+
+      // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+      // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+      var scriptEl = global.document.createElement('script');
+      scriptEl.onreadystatechange = function () {
+        nextTick();
+
+        scriptEl.onreadystatechange = null;
+        scriptEl.parentNode.removeChild(scriptEl);
+        scriptEl = null;
+      };
+      global.document.documentElement.appendChild(scriptEl);
+    };
+  // 最后什么都不行，用 setTimeout 0
+  } else {
+    scheduleDrain = function () {
+      setTimeout(nextTick, 0);
+    };
+  }
+}
+```
+
+scheduleDrain 的根本目的，是尽可能较快，异步触发 nextTick 。以下是几种方案：
+
+使用 [MutationObserver](https://developer.mozilla.org/zh-CN/docs/Web/API/MutationObserver) 监控一个空文本节点，每次调用 scheduleDrain 之后会把 called 的值从 0 改为 1（或从 1 改回 0）。改变这个 DOM 节点会触发
+`new Mutation(nextTick)` 注册的回调。这种回调的执行顺序会比 setTimeout 快。
+
+使用[MessageChannel](https://developer.mozilla.org/zh-CN/docs/Web/API/MessageChannel)，port1 的 message 事件触发时候，调用 nextTick 回调。scheduleDrain 执行时，通过 `port2.postMessage` 触发 port1 的 message 事件。
+
+低版本浏览器用一个动态插入的 script 标签，它的 readystatechange 事件会触发，触发的结果就是立即执行 nextTick 。这种“事件触发调用 nextTick” 的思想和前面两种方法很接近，但是用 script 标签要注意，在 readystatechange 事件最后要移除 script 标签。
+
+最后，如果以上三种方案都不支持，用 setTimeout 0 。
+
+
+```javascript
+function nextTick() {
+  draining = true;
+  var i, oldQueue;
+  var len = queue.length;
+  while (len) {
+    oldQueue = queue;
+    queue = [];
+    i = -1;
+    while (++i < len) {
+      oldQueue[i]();
+    }
+    len = queue.length;
+  }
+  draining = false;
+}
+```
+
+nextTick 按 queue 中 回调的顺序，逐个执行回调，执行完之后把 draining 重置为 false 。
+
+看一下这段代码的执行结果：
+
+```javascript
+var p1 = new Promise(function (resolve, reject) {
+	console.log(1);
+	resolve(4);
+	Promise.resolve(3).then( num => { console.log(num); });
+}).then().then(num => {
+	console.log(num);
+})
+
+console.log(2);
+```
+
+结果是 1234 。细节如下：
+
+1. Promise 的入参是同步执行的，所以先打印 1 。
+
+2. p1 先 resolve ，p1 状态 FULFILLED ，outcome = 4；
+
+3. 新建一个 Promise 实例，立刻把它的状态变为 RESOLVED ，注册 then 的成功回调。
+
+4. 注册 p1 的回调
+
+5. 执行同步代码
+
+6. 清空 queue 。
+
+
+
+
+
+
+
+
+
 
 
 

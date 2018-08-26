@@ -36,8 +36,9 @@ build/Release
 node_modules/
 jspm_packages/
 .vscode/
-react/node_modules/
+react/node_modules
 src/
+.DS_Store/
 
 # TypeScript v1 declaration files
 typings/
