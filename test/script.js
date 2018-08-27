@@ -1,15 +1,11 @@
-let resolver = function(resolve) {
-	var number = 0;
-    resolve(++number);
-};
-
-new Promise(resolver).then((num) => {
-	console.log(num);
-}).then((num) => {
-	console.log(num)
-})
-
-
+let thenable = {
+    then: function(resolve, reject) {
+        resolve(2)
+    }
+}
+Promise.resolve(thenable).then((v => {
+    console.log(v)
+}));
 
 
 

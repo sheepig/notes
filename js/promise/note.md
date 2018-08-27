@@ -454,6 +454,162 @@ console.log(2);
 
 ![](./async-resolver.png)
 
+### Promise 的其他接口
+
+Promise A+ 其实没有规定 Promise 实现的其他接口。常用的 `promise.catch` `Promise.resolve` 其实都是基于 `then` 去扩展的。
+
+#### Promise.prototype.catch
+
+```javascript
+Promise.prototype["catch"] = function (onRejected) {
+  return this.then(null, onRejected);
+};
+```
+ 
+所以 `Promise.prototype.catch` 是 `this.then(null, onRejected)` 的别名。以下这两种写法本质是一样的。
+
+```javascript
+var p1 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        reject('opps!');
+    }, 1000)
+});
+
+p1.catch((err) => {
+    console.log(err);
+})
+
+// 等同于
+p1.then(() => {}, (err) => {
+    console.log(err);
+})
+
+```
+
+#### Promise.prototype.finally
+
+finally 方法用于指定不管 Promise 对象最后状态如何，都会执行的操作。该方法是 ES2018 引入标准的。
+
+finally 其实是 `then` 方法的特例，`onFulfilled` `onRejected` 的回调是同一个。
+
+```javascript
+Promise.prototype["finally"] = function (callback) {
+  if (typeof callback !== 'function') {
+    return this;
+  }
+  var p = this.constructor;
+  // finally 本质还是 then 方法
+  return this.then(resolve, reject);
+
+  function resolve(value) {
+    function yes () {
+      return value;
+    }
+    // 利用 Promise.resolve 把一个新的 promise 转换成 RESOLVED，注册它的成功回调
+    // 这里调用 callback 时，和 `this` 没有联系。callback 的操作，应该是与状态无关的，不依赖于 Promise 的执行结果。
+    return p.resolve(callback()).then(yes);
+  }
+  function reject(reason) {
+    function no () {
+      throw reason;
+    }
+    return p.resolve(callback()).then(no);
+  }
+};
+```
+
+#### Promise.resolve && Promise.reject
+
+这两个方法比较接近，所以放在一块讲。Promise.resolve 多了一层判断，如果入参已经是一个 promise ，直接返回它。这两个方法本质都是新建一个 promise ，并且一定在未来某一时刻（可能是立刻），把它的状态转换为 FULFILLED 或 REJECTED 。
+
+```javascript
+Promise.resolve = resolve;
+function resolve(value) {
+  if (value instanceof this) {
+    return value;
+  }
+  return handlers.resolve(new this(INTERNAL), value);
+}
+
+Promise.reject = reject;
+function reject(reason) {
+  var promise = new this(INTERNAL);
+  return handlers.reject(promise, reason);
+}
+```
+
+在这里有必要重新看看 `handlers.resolve` 方法。`handlers.resolve(new this(INTERNAL), value)` 的 value 可以是一个 thenable 对象。即
+
+```javascript
+let thenable = {
+    then: function(resolve, reject) {
+        resolve(2)
+    }
+}
+Promise.resolve(thenable).then((v => {
+    console.log(v)
+}));
+```
+
+这里 resolve 是同步的，promise 创建后，会调用 then 方法。
+
+Promise.resolve 并不是总返回一个 resolved 对象。在 resolve 的时候其实用了 try catch 封装。catch 错误的时候会返回一个 rejected 的 promise 。
+
+#### Promise.all && Promise.race
+
+Promise.all 返回的是一个 promise 。
+
+```javascript
+Promise.all = all;
+function all(iterable) {
+  var self = this;
+  if (Object.prototype.toString.call(iterable) !== '[object Array]') {
+    return this.reject(new TypeError('must be an array'));
+  }
+
+  var len = iterable.length;
+  var called = false;
+  if (!len) {
+    return this.resolve([]);
+  }
+
+  // values 数组，每个值是 iterable[i] resolve 的返回值。这个数组传递给 promise 的回调函数
+  var values = new Array(len);
+  var resolved = 0;
+  var i = -1;
+  // Promise.all 返回值是一个 promise
+  var promise = new this(INTERNAL);
+
+  while (++i < len) {
+    allResolver(iterable[i], i);
+  }
+  return promise;
+  function allResolver(value, i) {
+    // n 次 Promise.resolve(iterable[i])
+    // 第 i 次 Promise.resolve(iterable[i])，因为 iterable[i] resolve，把它的返回值赋给 values[i] 
+    // 等到所有 iterable[i] 都被 resolved ，也就是符合条件 ++resolved === len && !called
+    // 把 values 数组传递给 promise 回调
+    self.resolve(value).then(resolveFromAll, function (error) {
+      if (!called) {
+        // 一旦有一个 iterable[i] 被rejected ，reject promise，并把 iterable[i] rejected 的 reason 传递过去
+        called = true;
+        handlers.reject(promise, error);
+      }
+    });
+    // 如果 iterable[i]
+    function resolveFromAll(outValue) {
+      values[i] = outValue;
+      if (++resolved === len && !called) {
+        called = true;
+        handlers.resolve(promise, values);
+      }
+    }
+  }
+}
+```
+
+Promise.race 也会做 n 次 `Promise.resolve(iterable[i])` ，不同的是，第一个 `iterable[i]` 状态改变就会停止后面的 Promise.resolve ，并把 resolve/reject 结果传给 promise 。
+
 >参考
 [从一道Promise执行顺序的题目看Promise实现](https://fed.renren.com/2018/03/10/promise/)
 [InterviewMap-Promise 实现](https://yuchengkai.cn/docs/zh/frontend/#promise-%E5%AE%9E%E7%8E%B0)
