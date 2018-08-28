@@ -40,6 +40,11 @@
 
 [同步渲染和异步渲染对 DOM 的阻塞](./async-render/node.md)
 
+[Promise 执行顺序](./promise/note.md)
+
+[由 babel 编译结果看 ES6 语法糖](./syntactic-suger/note.md)
+
 ## 作用域相关问题
 
 [作用域相关问题](./scope-related/note.md)
+
