@@ -611,7 +611,11 @@ function all(iterable) {
 Promise.race 也会做 n 次 `Promise.resolve(iterable[i])` ，不同的是，第一个 `iterable[i]` 状态改变就会停止后面的 Promise.resolve ，并把 resolve/reject 结果传给 promise 。
 
 >参考
-[从一道Promise执行顺序的题目看Promise实现](https://fed.renren.com/2018/03/10/promise/)
-[InterviewMap-Promise 实现](https://yuchengkai.cn/docs/zh/frontend/#promise-%E5%AE%9E%E7%8E%B0)
-[Promises/A+](https://promisesaplus.com/)
-[详解JavaScript中的Event Loop（事件循环）机制](https://zhuanlan.zhihu.com/p/33058983)
+
+>[从一道Promise执行顺序的题目看Promise实现](https://fed.renren.com/2018/03/10/promise/)
+>
+>[InterviewMap-Promise 实现](https://yuchengkai.cn/docs/zh/frontend/#promise-%E5%AE%9E%E7%8E%B0)
+>
+>[Promises/A+](https://promisesaplus.com/)
+>
+>[详解JavaScript中的Event Loop（事件循环）机制](https://zhuanlan.zhihu.com/p/33058983)
