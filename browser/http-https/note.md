@@ -31,6 +31,8 @@ TLS 1.0是IETF（Internet Engineering Task Force，Internet工程任务组）制
 
 这时候需要一个第三方来告诉 client，刚刚接收到的 public key 是合法的。这就是 Certification Authority 机制。
 
+![CA](https://upload-images.jianshu.io/upload_images/460263-60c696bb9f5f8715.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/800/format/webp)
+
 ### RSA
 
 RSA 算法的核心：对一个大数进行因式分解极难。
