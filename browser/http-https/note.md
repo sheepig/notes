@@ -122,7 +122,158 @@ N = p * q，从公开的数据中我们只知道 N 和 e ，所以问题的关�
 
 ### HTTPS 完整过程
 
-非对称加密用来加密后续对称加密需要使用的密钥。
+tcp 抓包结果如下：
+
+![tcp connection](./tcp.png)
+
+#### 建立 tcp 链接
+
+前三段 tcp 报文，并且很明显有：
+
+```
+C ---- [SYN]       Seq=0       ---> S
+C <--- [SYN] [ACK] Seq=0 Ack=1 ---- S
+C ----       [ACK] Seq=1 Ack=1 ---> S
+```
+
+这就是 tcp 三次握手。
+
+#### Client Hello
+
+ - TSL 版本
+
+使用的TLS版本是1.2，TLS有三个版本，1.0，1.1，1.2，1.2是最新的版本，https的加密就是靠的TLS安全传输层协议
+
+![TSL version](./TSLversion.png)
+
+ - 客户端当前的时间和一个随机密码串，这个时间是距Unix元年(1970.1.1)的秒数
+
+![random](./random.png)
+
+ - sessionId，会话ID，第一次连接时为0，如果有sessionId，则可以恢复会话，而不用重复握手过程
+
+![sessionID](./sessionID.png)
+
+ - 浏览器支持的加密组合方式：可以看到，浏览器一共支持 17 种加密组合方式，发给服务器，让服务器选一个。
+
+![cipher-suites](./cipher-suites.png)
+
+ - server 域名
+
+![server name](./server-name.png)
+
+域名是工作在应用层 http 里的，而握手是发生在 TLS ,还在传输层。在传输层里面就把域名信息告诉服务器，好让服务根据域名发送相应的证书。
+
+#### Server Hello
+
+服务器收到了Client Hello的信息后，就给浏览器发送了一个Server Hello的包，这个包里面有着跟Client Hello类似的消息
+
+ - 时间、随机数等，注意服务器还发送了一个Session Id给浏览器
+
+![server hello](./server-hello.png)
+
+ - 服务器选中的加密方式
+
+![cipher suite](./cipher-suite.png)
+
+ - Certificate 证书
+
+![Certificate](./certificate.png)
+
+可以看到 server 发送了两份证书
+
+![CA](./ca.png)
+
+在浏览器中可以查看这些证书的关系。
+
+![ca detail](./ca-detail.png)
+
+GlobalSign Root CA 是系统根证书，现代网络操作系统都会内置一份可信的根证书列表（Firefox 的根证书列表独立于操作系统之外）。
+所谓“可信的根证书列表”是指操作系统开发商通过严格地审核，将安全可靠、可被信任的 CA 机构纳入白名单，并将这些权威可信 CA 的根证书预安装到操作系统中。
+
+浏览器中可以查看根证书
+
+![root ca](./root-ca.png)
+
+`*.juejin.im` 的证书是依赖于 `GlobalSign Domain` 的证书，换句话说，`GlobalSign Domain` 的证书为 `*.juejin.im` 的证书做担保，而根证书 `GlobalSign Root` 为 `GlobalSign Domain` 做担保，形成一条依赖链。明白这点很重要，从技术的角度上来说，`GlobalSign` 为 `*.juejin.im` 的证书做签名，只要签名验证正确就说明 `*.juejin.im` 的证书是合法的。
+
+`*.juejin.im` 证书里面会指明它的上一级证书
+
+![ca relation](./ca-relation.png)
+
+现在来看下一个证书里面具体有什么内容。
+
+除了上面提到的签名外，每个证书还包含签名的算法，和被签名的证书 tbsCertificate(to be signed Certificate)三部分：
+
+![signed ca](./signed-ca.png)
+
+tbsCertificate 展开可以看到证书所支持的域名、有效期
+
+![supported domain](./support-domain.png)
+
+![validity](./validity.png)
+
+还有证书的公钥
+
+![pubkey](./pubkey.png)
+
+把公钥拷贝出来，是一个 270 字节的数字。
+
+```java
+String publicKey = "3082010a0282010100a33da1f26ef4586d7b5da8be5cfbe5b48b8cd2d00df6960b640fab2d959a2cac1ae4022756c1f70d2701de0b133039c29793cf0c21382e18f1d6720f1d57c0261ee07a0afeb508e83896e1ce3e98d9ccc636e2b1627be11b258b6e5c1cc8c4721dbf2c6672cc8e2c23da576b6ecbf3f93227e756a7b195f00e329d043e1ba84af1a259e69c06a80a050d1b5649e6e52a93c4d418f43361282883591ae90019ea933054799c330d046fde030260dc815bee0b292b5c2317b6eff77e2d37512101c0bde04b898aee85fb7ce73f93728ac8c506f785927073c2b18d7d479664bb95f2db970e984afdd0df70f6f7d1da3953672e804a1fd0354ddbf6063912dba9950203010001";
+```
+
+黑色部分是标志位，公钥可以拆为 N 和 e 两部分。
+
+![public key](./pulicKey.png)
+
+N 是一个十六进制的 512 位数字，换算成二进制有 2048 位。普通的证书是1024位，2048位是一个很高安全级别，换算成10进制是617位，如果你能够将这个617位的大整数拆成两个质数相乘，就可以推导出密钥（但这是不可能的）。
+
+e 为 65537 ，证书通常取的幂指数都为这个数字。
+
+证书里面可以知道证书的加密算法为RSA + SHA256，SHA是一种哈希算法，可用来检验证书是否被篡改过：
+
+![encrypted CA](./encryptedCA.png)
+
+将 encrypted 的值拷贝出来，就是证书的签名
+
+```java
+String signature = "005bd43c64a8901c858bc8caf78c7eb75df6b71c11a51fff9afa1f1c8c1b7c4e12f70f1c02abaed13db0d791c105f620bf7b5d62f4cc29626acc941ba7088acad006c076be34afceb600107d3ebd997304d4d652143aba3161e5de12658bc3bec017cea58dec7993e678ef018f5d4709c5090db811f29da51baf28db97f04d6df2ef9893682128b0d3c74bf1c3531f474251cfcbb4a7c3832bec9c4e9719d58153f6547238f188c6f59af020b79d55a8722bdb64c5a0453be72a264d199fa6b35af72c88ff5cff7529f53d785afb1d343e782960af396f89201452c2725992d231e2277029eb12bcaaf4ccfd625fb0e2026bfc3946581690bb56ca6ca7864981";
+```
+
+这个签名是一个 256 个字节的数字，它是 GlobalSign Domain 用它的密钥对 tbsCertificate 做的签名，可以用 GlobalSign Domain 的公钥进行解密。
+
+解除来的结果可以提取一段 SHA 哈希，记为 sha1，
+
+对 tbsCertificate 做 SHA 哈希，得到 sha2，
+
+只有 sha1 == sha2 ，我们认为证书没有被篡改。
+
+中间人有没有可能既篡改了证书，还能保证哈希值是对的？首先不同的字符串被SHA256哈希后的值是一样的概率比较小，同时由于密钥和公钥是一一配对的，所以中间人只能把公钥改成它的公钥，这个公钥是一个p * q 的整数，所以他必须得满足两个条件，一个是要更改成一个有意义的公钥，另一个是整个证书的内容被哈希后的值和没改前是一样的，满足这两个条件就相当困难了。
+
+#### Server Key Exchange 和 Client Key Exchange
+
+看抓包结果，Server Key Exchange 和 Certificate 是在同一段报文里面的。
+
+客户端确认证书合法之后，接收 server 的公钥，并把自己的公钥发送给 server 。
+
+这次交换的公钥，要比证书的公钥短很多，只有 97 字节。同时加密的算法也不是 RSA （RSA的计算量太大）所以RSA是用来验证身份然后交换密钥的，并不是用来加密数据的，因为它计算量太大。加密数据是用的ECDHE生成的密钥和公钥。
+
+![public key length](./public-key-length.png)
+
+同样地，浏览器结合服务器发给它的随机密码(Server Hello)，生成它自己的主密钥，然后发送公钥发给服务器
+
+双方交换密钥之后，浏览器给服务器发了一个明文的 Change Cipher Spec 的包，告诉服务器我已经准备好了，可以开始传输数据了,同样地，服务器也会给浏览器发一个Change Cipher Spec的包：
+
+![change ciper spec](./change-ciper-spec.png)
+
+实际上，这些包并不是一个个单独发的，client 发送 Client Key Exchange 的时候，连带把 Change Cipher Spec 的包和 Encrypted Handshake Message 的请求一并发送出去，server 的响应也是类似的。这样可以节约几次 RTT 时间。
+
+浏览器给服务回了个ACK，然后就开始传输数据：
+
+数据传输过程，是对称加密的，那为什么还要交换公钥？公钥的作用是加密“对称加密的钥匙”。
+
+服务器选择的数据传输加密方式为AES，AES是一种高效的加密方式，它会使用主密钥（服务器的私钥）生成另外一把密钥。
 
 
 
