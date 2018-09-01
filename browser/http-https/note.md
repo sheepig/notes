@@ -140,7 +140,7 @@ C ----       [ACK] Seq=1 Ack=1 ---> S
 
 #### Client Hello
 
- - TSL 版本
+ - TLS 版本
 
 使用的TLS版本是1.2，TLS有三个版本，1.0，1.1，1.2，1.2是最新的版本，https的加密就是靠的TLS安全传输层协议
 
@@ -225,7 +225,7 @@ String publicKey = "3082010a0282010100a33da1f26ef4586d7b5da8be5cfbe5b48b8cd2d00d
 
 黑色部分是标志位，公钥可以拆为 N 和 e 两部分。
 
-![public key](./pulicKey.png)
+![public key](./publicKey.png)
 
 N 是一个十六进制的 512 位数字，换算成二进制有 2048 位。普通的证书是1024位，2048位是一个很高安全级别，换算成10进制是617位，如果你能够将这个617位的大整数拆成两个质数相乘，就可以推导出密钥（但这是不可能的）。
 
@@ -243,7 +243,7 @@ String signature = "005bd43c64a8901c858bc8caf78c7eb75df6b71c11a51fff9afa1f1c8c1b
 
 这个签名是一个 256 个字节的数字，它是 GlobalSign Domain 用它的密钥对 tbsCertificate 做的签名，可以用 GlobalSign Domain 的公钥进行解密。
 
-解除来的结果可以提取一段 SHA 哈希，记为 sha1，
+解出来的结果可以提取一段 SHA 哈希，记为 sha1，
 
 对 tbsCertificate 做 SHA 哈希，得到 sha2，
 
