@@ -70,7 +70,3 @@ void solve(Node n) {
 
 其实和第二类很像，只不过不是直接把 goal node 存起来，而是每次都和当前上一个 goal node 作比较，总是保留最好的那个。
 
-------
-
-#### leetCode 51. N-Queens
-
