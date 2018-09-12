@@ -101,6 +101,52 @@ bool canPartition(vector<int>& nums) {
 
 > F(i, v) = max{F(i-1, v), F(i, v-Ci) + Wi}
 
+[leetcode-322 Coin Change](https://leetcode.com/problems/coin-change/)
+
+You are given coins of different denominations and a total amount of money amount. Write a function to compute the fewest number of coins that you need to make up that amount. If that amount of money cannot be made up by any combination of the coins, return -1.
+
+Example 1:
+
+```
+Input: coins = [1, 2, 5], amount = 11
+Output: 3 
+Explanation: 11 = 5 + 5 + 1
+```
+
+Example 2:
+
+```
+Input: coins = [2], amount = 3
+Output: -1
+```
+
+Note:
+
+You may assume that you have an infinite number of each kind of coin.
+
+题目分析：用 dp[i] 表示合成金额 i 所需要的最少硬币数。对于某个币值 coin[n] ，如果 i > coin[n] ，即可以添加新硬币，那么有 dp[i] = dp[i-coin[n]] + 1 ,即先合成金额 i - coin[n] ,然后加上当前的硬币（+1）。如果不选择添加新硬币，那么 dp[i] 保持不变。我们要选取使用硬币最少的方案，所以
+
+> dp[i] = min{dp[i], dp[i-coin[n]] + 1}
+
+现在有一个问题，dp 怎么初始化？显然有 dp[0] = 0，因为组合金额为 0 时，不需要花费硬币。在给 dp[i] 赋值的时候，因为我们选取的是最小值，所以后面的 dp[i] 初始化为一个很大的数，我们可以用 MAX_INT ，这里也可以用 amount 的值。这里要注意，在取 dp[i] 的 min 值的时候，需要加上判断，除 i - coin[i] > 0 之外，还需要 dp[i - coin[i]] != MAX_INT ，因为我们要保证金额 i - coin[i] 是可以凑成的。
+
+```cpp
+int coinChange(vector<int>& coins, int amount) {
+    int MAX = amount + 1;
+    vector<int> dp(amount + 1, MAX);
+    int N = coins.size();
+    dp[0] = 0;
+    for (int n = 0; n < N; n++) {
+        for (int i = 1; i <= amount; i++) {
+            int pre = i - coins[n];
+            if (pre >= 0 && dp[pre] != MAX) {
+                dp[i] = std::min(dp[i], dp[pre] + 1);
+            }
+        }
+    }
+    return dp[amount] == MAX ? -1 : dp[amount];
+}
+```
 
 
 
