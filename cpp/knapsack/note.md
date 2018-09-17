@@ -66,6 +66,10 @@ bool canPartition(vector<int>& nums) {
 }
 ```
 
+类似的问题还有一个 [leetcode 474. Ones and Zeroes](https://leetcode.com/problems/ones-and-zeroes/description/) ，用二维数组标识不同的背包容量。
+
+[494. Target Sum](https://leetcode.com/problems/target-sum/description/)
+
 #### 初始化细节问题
 
 我们看到的求最优解的背包问题题目中，事实上有两种不太相同的问法。有的题目要求“恰好装满背包”时的最优解，有的题目则并没有要求必须把背包装满。一种区别这两种问法的实现方法是在初始化的时候有所不同。如果是第一种问法，要求恰好装满背包，那么在初始化时除了F[0] 为0，其它F[1...V ] 均设为-∞，这样就可以保证最终得到的F[V ] 是一种恰好装满背包的最优解。如果并没有要求必须把背包装满，而是只希望价格尽量大，初始化时应该将F[0...V ]全部设为0。
@@ -153,3 +157,4 @@ int coinChange(vector<int>& coins, int amount) {
 
 
 > 部分转载自[背包九讲系列1——01背包、完全背包、多重背包](https://www.jianshu.com/p/0b9018bbacd7)
+
