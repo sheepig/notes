@@ -5369,6 +5369,8 @@ var nodeOps = Object.freeze({
   setStyleScope: setStyleScope
 });
 
+console.log(nodeOps)
+
 /*  */
 
 var ref = {

@@ -56,6 +56,16 @@ function createTextVNode (val) {
 
 这类节点可以是常见的 `Vue.component('component-a', options)` 方式创建的节点，也可以是[异步组件](https://cn.vuejs.org/v2/guide/components-dynamic-async.html#%E5%9C%A8%E5%8A%A8%E6%80%81%E7%BB%84%E4%BB%B6%E4%B8%8A%E4%BD%BF%E7%94%A8-keep-alive)。
 
+#### render function
+
+把 Virtual DOM 映射到真实 DOM，依赖的是一个 render function，beforeMount 之前，初始化这个 render function
+
+```javascript
+if (!vm.$options.render) {
+    vm.$options.render = createEmptyVNode;
+}
+```
+
 #### VNode 的创建
 
 在对 vm `initRender` 的时候，做了这样一步：
@@ -64,7 +74,7 @@ function createTextVNode (val) {
 vm._vnode = null; // the root of the child tree
 ```
 
-`vm.$mount` 的时候，会调用 `vm._render()` ，从 `vm.$options` 提取 vnode 信息，初始化 parentVnode ，同时生成组件 VNode 节点，由 `vm.render` 生成。
+`vm.$mount` 的时候，会调用 `vm._render()` (Vue.prototype 上的方法，实际上调用的是 vm.$options.render ) ，从 `vm.$options` 提取 vnode 信息，初始化 parentVnode ，同时生成更新组件 VNode 节点。
 
 ```javascript
 var vm = this;
@@ -77,6 +87,26 @@ vm.$vnode = _parentVnode;
 
 vnode = render.call(vm._renderProxy, vm.$createElement); // returns
 ```
+
+#### diff & patch
+
+此时我们得到一个新的 VNode，需要和旧的 VNode 对比更新。通过 `vm._update` 实现。
+
+
+Virtual DOM 具有跨平台，Vue 对 API（插入，删除节点，新建节点等...） 做了一些封装，提供统一的接口。
+
+---
+
+diff 算法
+
+关于 diff 的思想可以看 [React diff](https://calendar.perfplanet.com/2013/diff/) 。最关键的一点就是：比较只会在同级进行。
+
+![](https://calendar.perfplanet.com/wp-content/uploads/2013/12/vjeux/1.png)
+
+
+
+
+
 
 
 

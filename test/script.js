@@ -1,11 +1,25 @@
-let thenable = {
-    then: function(resolve, reject) {
-        resolve(2)
-    }
-}
-Promise.resolve(thenable).then((v => {
-    console.log(v)
-}));
+
+
+var app = new Vue({
+	el: '#app',
+	template: '<div><child></child></div>',
+	component: {
+		child
+	}
+});
+
+var child = Vue.component('child', {
+	name: 'child',
+	template: '<div>{{name}}</div>',
+	data() {
+		return {
+			name: 'child'
+		}
+	}
+})
+
+
+
 
 
 
