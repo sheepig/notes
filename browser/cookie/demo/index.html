@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+	<h1>test page</h1>
+	<button id="btn">send request</button>
+	<script>
+		var ajax = {};
+		ajax.get = function (url, params) {
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', url);
+			xhr.withCredentials = true;
+			xhr.send(null);
+			xhr.onreadystatechange = function() {
+				if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+				    console.log(xhr.responseText);
+				}
+			}
+		}
+		var btn = document.getElementById('btn');
+		btn.addEventListener('click', function(e) {
+			var url = 'http://localhost:3000/test';
+			ajax.get(url);
+		})
+	</script>
+</body>
+</html>
