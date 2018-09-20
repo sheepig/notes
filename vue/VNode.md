@@ -88,6 +88,8 @@ vm.$vnode = _parentVnode;
 vnode = render.call(vm._renderProxy, vm.$createElement); // returns
 ```
 
+其实在这之前还有一个 template compile 的过程。
+
 #### diff & patch
 
 此时我们得到一个新的 VNode，需要和旧的 VNode 对比更新。通过 `vm._update` 实现。
@@ -102,6 +104,114 @@ diff 算法
 关于 diff 的思想可以看 [React diff](https://calendar.perfplanet.com/2013/diff/) 。最关键的一点就是：比较只会在同级进行。
 
 ![](https://calendar.perfplanet.com/wp-content/uploads/2013/12/vjeux/1.png)
+
+简化后的 patch 函数如下，oldVNode 是旧的 VNode 节点，vnode 是新的 VNode 节点，parentElm 是真实的 DOM 节点，是 oldVnode.el ，即 oldVnode 对应的父节点。
+
+```javascript
+function patch(oldVNode, vnode, parentElm) {
+  if (!vnode) {
+    // 如果新节点不存在，删去旧节点
+    invokeDestroyHook(oldVnode);
+    return;
+  }
+
+  var isInitialPatch = false;
+  var insertedVnodeQueue = [];
+  if (!oldVnode) {
+    // 如果旧节点不存在，直接向 parentElm 添加新节点
+    isInitialPatch = true;
+    createElm(vnode, insertedVnodeQueue, parentElm);
+  } else {
+    if (sameVNode(oldVnode, vnode)) {
+      // 如果 oldVnode 和 vnode 是相同节点类型，执行 patchVnode
+      patchVnode(oldVnode, vnode, insertedVnodeQueue);
+    } else {
+      // 删除旧节点，添加新节点
+      removeVnodes(parentElm, oldVnode, oldVnode.length - 1);
+      addVnodes(parentElm, null, vnode, vnode.length - 1);
+    }
+  }
+}
+```
+
+什么是“相同节点类型”，判断条件如下：a，b 的 key 值必须一样，然后满足以下任一条件： 
+
+1. type 相同的 input 元素
+2. asyncFactory 相同的异步组件
+
+```javascript
+function sameVnode(a, b) {
+  return (
+    a.key === b.key && (
+      (
+        a.tag === b.tag &&
+        a.isComment === b.isComment &&
+        isDef(a.data) === isDef(b.data) &&
+        sameInputType(a, b)
+      ) || (
+        isTrue(a.isAsyncPlaceholder) &&
+        a.asyncFactory === b.asyncFactory &&
+        isUndef(b.asyncFactory.error)
+      )
+    )
+  )
+}
+```
+
+patchVnode
+
+```javascript
+function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
+  if (oldVnode === vnode) {
+    return
+  }
+
+  //在当新老 VNode 节点都是 isStatic（静态的），并且 key 相同时，只要将 componentInstance 与 elm 从老 VNode 节点“拿过来”即可。
+  // 这里的 isStatic 是「编译」的时候会将静态节点标记出来，这样就可以跳过比对的过程。
+
+  if (vnode.isStatic && oldVnode.isStatic && vnode.key === oldVnode.key) {
+    vnode.elm = oldVnode.elm;
+    vnode.componentInstance = oldVnode.componentInstance;
+    return;
+  }
+
+  var elm = vnode.elm = oldVnode.elm;
+  var oldCh = oldVnode.children;
+  var ch = vnode.children;
+
+  // 如果新节点是文本节点，直接设置 elm 的节点值
+  if (vnode.text) {
+    nodeOps.setTextContent(elm, vnode.text);
+  } else {
+    // 更新子节点
+    if (oldCh && ch && (oldCh !== ch)) {
+      updateChildren(elm, oldCh, ch);
+    } else if (ch) {
+      if (oldVnode.text) nodeOps.setTextContent(elm, '');
+      addVnodes(elm, null, ch, 0, ch.length - 1);
+    } else if (oldCh) {
+      removeVnodes(elm, oldCh, 0, oldCh.length - 1)
+    } else if (oldVnode.text) {
+      nodeOps.setTextContent(elm, '')
+    }
+  }
+}
+```
+当新 VNode 节点是非文本节点当时候，需要分几种情况。
+
+ - oldCh 与 ch 都存在且不想同时，使用 updateChildren 函数来更新子节点，具体过程可以看[这篇文章](https://cloud.tencent.com/developer/article/1006029)。
+
+ - 如果只有 ch 存在的时候，如果老节点是文本节点则先将节点的文本清除，然后将 ch 批量插入插入到节点elm下。
+
+ - 同理当只有 oldch 存在时，说明需要将老节点通过 removeVnodes 全部清除。
+
+ - 最后一种情况是当只有老节点是文本节点的时候，清除其节点文本内容。
+
+
+
+> 参考
+> 
+> 染陌的掘金小册：剖析 Vue.js 内部运行机制
 
 
 
