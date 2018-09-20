@@ -78,3 +78,35 @@ document.cookie // "agg=sss"
 
 删除一个cookie 也挺简单，也是重新赋值，只要将这个新cookie的expires 选项设置为一个过去的时间点就行了。但同样要注意，path/domain/这几个选项一定要旧cookie 保持一样。
 
+原生的 cookie 的读写接口都不太友好，一般需要封装方法。
+
+ - 读取 cookie
+
+document.cookie 的结果是一串字符串，是以“; ”分隔开的 cookie 键值对。
+
+```javascript
+function getCookie(name) {
+    var ary = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
+    // 第二个捕获组就是 key=value; 的 value
+    return ary[2] ? ary[2] : null;
+}
+
+getCookie('agg');
+```
+
+```javascript
+// options
+// |-- expires  自设置起过期秒数
+// |-- callback 设置成功后回调
+function setCookie(name, value, options) {
+    options = options ? options : {};
+    var exp = new Data();
+    var expire = "";
+    if (options.expires) {
+        exp.setTime(exp.getTime + expires * 1000);
+        expire = exp.toGMTString();
+    }
+    document.cookie = name + "=" + escape(value) + ";path=/;expires=" + expire;
+    options.callback && options.callback();
+}
+```
