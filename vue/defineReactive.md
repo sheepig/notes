@@ -240,8 +240,12 @@ Child 的 desc 并没有在视图中用到，此时改变 desc ，不会触发�
 
 当数据被“set”的时候，调用 reactiveSetter 。此时有一个比较，如果新值和旧值严格相等，则什么也不做。否则，订阅者通知每一个订阅了这个数据的 Watcher ，更新视图。dep.notify() ，结果就是 dep.subs[] 中，每一个 Watcher 实例执行 update 。
 
-update的过程【待补充】
+update 的过程:
 
+ - sync update
+ - async update
+
+update 过程有两种：异步和同步。异步 update 把 watcher 压入 queue（存放 watcher），全局标志位 waiting 为 false 时，nextTick 清空这个 queue 。详细见 [nextTick](./nextTick.md)
 
 
 
