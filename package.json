@@ -25,6 +25,7 @@
     "supervisor": "^0.12.0"
   },
   "dependencies": {
-    "lie": "^3.3.0"
+    "lie": "^3.3.0",
+    "vuex": "^3.0.1"
   }
 }

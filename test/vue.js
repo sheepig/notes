@@ -770,7 +770,6 @@ Object.defineProperties( VNode.prototype, prototypeAccessors );
 
 var createEmptyVNode = function (text) {
   if ( text === void 0 ) text = '';
-  console.log('Empty Node', text);
   var node = new VNode();
   node.text = text;
   node.isComment = true;
@@ -4563,8 +4562,7 @@ function renderMixin (Vue) {
     }
     // set parent
     vnode.parent = _parentVnode;
-    console.log(vnode)
-    return vnode
+        return vnode
   };
 }
 
@@ -5369,7 +5367,6 @@ var nodeOps = Object.freeze({
   setStyleScope: setStyleScope
 });
 
-console.log(nodeOps)
 
 /*  */
 
