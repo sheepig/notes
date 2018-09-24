@@ -362,6 +362,183 @@ state --> getter（if required) --> component
 
 component --> action(if required) -|$store.dispatch|-> mutation -|$store.commit|-> state
 
+#### commit
+
+commit 用于提交 mutation ，提交的风格有两种：带有 type 属性的对象，或者第一个参数为对应的 mutation 。
+
+```javascript
+store.commit({
+  type: 'increment',
+  amount: 10
+})
+
+store.commit('increment', {
+	amount: 10
+})
+```
+
+之所以能支持着两种写法，是因为 Store 的 commit 函数对参数做了处理。
+
+```javascript
+Store.prototype.commit = function commit (_type, _payload, _options) {
+    var this$1 = this;
+
+  // check object-style commit
+  // 提取出 type、payload、options 信息
+  var ref = unifyObjectStyle(_type, _payload, _options);
+    var type = ref.type;
+    var payload = ref.payload;
+    var options = ref.options;
+
+  var mutation = { type: type, payload: payload };
+  // 取出 type 对应的 mutation 方法
+  // 没有 namespace 的时候，会触发所有模块的 mutation
+  var entry = this._mutations[type];
+  if (!entry) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(("[vuex] unknown mutation type: " + type));
+    }
+    return
+  }
+  this._withCommit(function () {
+    entry.forEach(function commitIterator (handler) {
+      // 在 registerMutation 时
+      // var entry = store._mutations[type] || (store._mutations[type] = []);
+      // entry.push(function wrappedMutationHandler (payload) {
+      //   handler.call(store, local.state, payload); // 这里的 handler 指 type 对应的 mutation
+      // });
+
+      // 这里的 handler 就是上面的 wrappedMutationHandler ，是对 “执行 mutation ”这一动作的一层封装
+      handler(payload);
+    });
+  });
+
+  // 通知所有订阅者
+  this._subscribers.forEach(function (sub) { return sub(mutation, this$1.state); });
+
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    options && options.silent
+  ) {
+    console.warn(
+      "[vuex] mutation type: " + type + ". Silent option has been removed. " +
+      'Use the filter functionality in the vue-devtools'
+    );
+  }
+};
+```
+
+Store 给外部提供了一个订阅的方法，注册一个订阅函数，会 push 到 store._subscribers 中，返回值是取消这个订阅的函数。
+
+```javascript
+function genericSubscribe (fn, subs) {
+  if (subs.indexOf(fn) < 0) {
+    subs.push(fn);
+  }
+  return function () {
+    var i = subs.indexOf(fn);
+    if (i > -1) {
+      subs.splice(i, 1);
+    }
+  }
+}
+```
+
+在 commit 结束以后则会调用这些 _subscribers 中的订阅者，这个订阅者模式提供给外部一个监视 state 变化的可能。state 通过 mutation 改变时，可以有效捕获这些变化。例如使用 Vuex devTool 时，提交 mutation 会使 devtoolHook emit 一个事件。
+
+#### dispatch
+
+store.dispatch 分发 action ，类似 commit 的行为，actions 支持同样的载荷方式和对象方式进行分发。
+
+```javascript
+Store.prototype.dispatch = function dispatch (_type, _payload) {
+  // 前面处理参数和获取 action 的过程和 commit 基本一样
+  var this$1 = this;
+
+  // check object-style dispatch
+  var ref = unifyObjectStyle(_type, _payload);
+  var type = ref.type;
+  var payload = ref.payload;
+
+  var action = { type: type, payload: payload };
+  var entry = this._actions[type];
+  if (!entry) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(("[vuex] unknown action type: " + type));
+    }
+    return
+  }
+  // action 订阅函数，通过 Store.prototype.subscribeAction 收集订阅函数
+  this._actionSubscribers.forEach(function (sub) { return sub(action, this$1.state); });
+
+
+  // 类似 mutation ，这里的 action 也加了一层 wrappedActionHandler 封装
+  // 并且 wrappedActionHandler 的返回类型会被转为 promise
+  return entry.length > 1
+    ? Promise.all(entry.map(function (handler) { return handler(payload); }))
+    : entry[0](payload)
+};
+```
+
+#### watch
+
+watch 的处理主要是针对 getters 的。_watcherVM 是一个 Vue 的实例，所以 watch 就可以直接采用了 Vue 内部的 watch 特性提供了一种观察数据 getter 变动的方法。
+
+```javascript
+Store.prototype.watch = function watch (getter, cb, options) {
+  var this$1 = this;
+
+  if (process.env.NODE_ENV !== 'production') {
+    assert(typeof getter === 'function', "store.watch only accepts a function.");
+  }
+  return this._watcherVM.$watch(function () { return getter(this$1.state, this$1.getters); }, cb, options)
+};
+```
+
+#### 辅助函数 mapState mapGetters mapMutations MapActions
+
+官网对 [mapState](https://vuex.vuejs.org/zh/guide/state.html#mapstate-%E8%BE%85%E5%8A%A9%E5%87%BD%E6%95%B0) 的描述：当一个组件需要获取多个状态时候，将这些状态都声明为计算属性会有些重复和冗余（不用计算属性，就要写多次 `this.$store.state.xxx` 不是很方便）。为了解决这个问题，我们可以使用 mapState 辅助函数帮助我们生成计算属性，让你少按几次键。
+
+mapState 返回的是一个对象，可以把这整个对象赋给组件的 computed 属性，更好的做法是通过对象展开运算符 `...` 把对象混入组件已有的 computed 中。
+
+```javascript
+var mapState = normalizeNamespace(function (namespace, states) {
+  var res = {};
+
+  // normalizeMap([1, 2, 3]) => [ { key: 1, val: 1 }, { key: 2, val: 2 }, { key: 3, val: 3 } ]
+  // normalizeMap({a: 1, b: 2, c: 3}) => [ { key: 'a', val: 1 }, { key: 'b', val: 2 }, { key: 'c', val: 3 } ]
+  // states 对象可以是数组或对象
+  normalizeMap(states).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    res[key] = function mappedState () {
+      var state = this.$store.state;
+      var getters = this.$store.getters;
+      if (namespace) {
+        var module = getModuleByNamespace(this.$store, 'mapState', namespace);
+        if (!module) {
+          return
+        }
+        state = module.context.state;
+        getters = module.context.getters;
+      }
+      // 如果是 count: state => state.count ，函数会被执行，
+      // 如果是 count: count ，处理成 state['count']
+      return typeof val === 'function'
+        ? val.call(this, state, getters)
+        : state[val]
+    };
+    // mark vuex getter for devtools
+    res[key].vuex = true;
+  });
+  return res
+});
+```
+
+mapGetters 和 mapState 类型，它是把 getters 混入组件的 computed 属性中。mapMutations 和 mapActions 则是把 mutations / actions 混入组件的 methods 对象中。
+
+
 
 
 

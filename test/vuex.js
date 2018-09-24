@@ -381,9 +381,11 @@ Store.prototype.commit = function commit (_type, _payload, _options) {
     var type = ref.type;
     var payload = ref.payload;
     var options = ref.options;
+  console.log(type)
 
   var mutation = { type: type, payload: payload };
   var entry = this._mutations[type];
+  console.log(entry)
   if (!entry) {
     {
       console.error(("[vuex] unknown mutation type: " + type));

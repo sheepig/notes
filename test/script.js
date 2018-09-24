@@ -17,7 +17,6 @@ var actions = {};
 
 
 const moduleA = {
-  namespaced: true,
   state: {
   	a: 'aa'
   },
@@ -62,6 +61,11 @@ var app = new Vue({
 		console.log(this.$store)
 		this.$store.commit('getParam', {
 			key: 1,
+		})
+	},
+	computed: {
+		...mapState({
+			title: state => state.title
 		})
 	}
 });
