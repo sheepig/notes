@@ -1,0 +1,17 @@
+.box{
+	width: 100px;
+	height: 100px;
+	background: #ccc;
+}
+
+.box1 {
+	width:100px;
+	height: 100px;
+	background: #ddd;
+	transform: translateX(200px);
+	transition: all 2s;
+}
+
+.box-wrapper {
+	margin-bottom: 200px;
+}

@@ -15,7 +15,9 @@
 
 ## vue 系列
 
-[vue 源码解析](./vue/README.md)
+[Vue.js 源码解析](./vue/README.md)
+
+[Vuex 源码解析](./vue/vuex.md)
 
 
 # gitbook 收藏
