@@ -63,7 +63,7 @@ animation: <name> <duration> <timing-function> <delay> <iteration-count> <direct
 
 ### js 动画
 
-[window.requestAnimationFrame()] (https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame)方法告诉浏览器您希望执行动画并请求浏览器在下一次重绘之前调用指定的函数来更新动画。该方法使用一个回调函数作为参数，这个回调函数会在浏览器重绘之前调用。
+[window.requestAnimationFrame()](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame) 方法告诉浏览器您希望执行动画并请求浏览器在下一次重绘之前调用指定的函数来更新动画。该方法使用一个回调函数作为参数，这个回调函数会在浏览器重绘之前调用。
 
 ## 动画和性能
 
@@ -121,7 +121,7 @@ animation: <name> <duration> <timing-function> <delay> <iteration-count> <direct
 
 用 transform 改写上面的例子，得到渲染过程如下：
 
-![transition transform](./static/transform.png)
+![transition transform](./static/transition-transform.png)
 
 显然浏览器花在 paint 的时间少的不止一星半点，动画演示期间并没有过多的 repaint 。简单说，[transform](https://csstriggers.com/transform) 不触发几何变化和绘制，它可以在 GPU 加速下，在**合成器线程（compositor thread）**中处理。
 
@@ -159,7 +159,7 @@ animation: <name> <duration> <timing-function> <delay> <iteration-count> <direct
 
 ## GPU 加速可能带来的问题
 
-###GPU是如何合成图像的
+### GPU是如何合成图像的
 
 GPU实际上可以看作一个独立的计算机，它有自己的处理器和存储器及数据处理模型。当浏览器向GPU发送消息的时候，就像向一个外部设备发送消息。
 
