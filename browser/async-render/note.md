@@ -190,8 +190,8 @@ console.log('after script');
 总结：
 
  - 未插入到 DOM 树的外链样式/脚本，不会发起网络请求，更不会对 DOM Parsing/Rendering 有什么影响。
- - 外链样式表/脚本不阻塞 DOM Parsing 和 DOM Rendering
- - 内联样式表/脚本阻塞 DOM Parsing/Rendering ，阻塞后续脚本（不会进入事件循环）。
+ - 同步模式下（文档已自带的 style、script 标签），内联样式表/脚本阻塞 DOM parsing ，外链样式表不阻塞 DOM parsing，但是阻塞 DOM rendering ；没有 async，defer 等标记的“裸奔”外链脚本，阻塞 DOM parsing 。
+ - 异步模式下（动态添加 style、script 标签）外链样式表/脚本不阻塞 DOM Parsing 和 DOM Rendering 。这意味着要等它们下载完才可用。内联样式表/脚本阻塞 DOM Parsing/Rendering ，阻塞后续脚本（不会进入事件循环，这一点和同步模式一样）。
 
 ------
 
@@ -201,7 +201,7 @@ console.log('after script');
  - 对整个页面样式的调整（会触发回流）如调整 rem 计算策略的 script 脚本，可以放在 `<head></head>` 中，这里可以用内联的方法（虽然不是最佳），阻塞后续 DOM 解析，避免样式跳动。也可以用外链脚本， 加上 `async` 标签可以让脚本的下载不占用 DOM 解析线程，在下载完后立刻执行。
  - 使用 CDN 。不局限于样式和脚本，图片也可以。
  - 样式、图片使用外域，因为浏览器有最大并行下载数限制。解析见[Why do big sites host their images/css on external domains?](https://webmasters.stackexchange.com/questions/26753/why-do-big-sites-host-their-images-css-on-external-domains)
- - `async` `defer` `preload` 。前两个只能作用于脚本
+ - `async` `defer` `preload` `prefetch`。前两个只能作用于脚本
 
 ![async vs defer](https://segmentfault.com/img/bVWhRl?w=801&h=814)
 
