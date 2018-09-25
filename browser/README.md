@@ -7,3 +7,7 @@
 [浅谈 Web Worker](./web-worker/note.md)
 
 [cookie的访问和修改](./cookie/note.md)
+
+[xss、csrf 防范](./xss-csrf/note.md)
+
+[浏览器事件机制](./dom-event/note.md)

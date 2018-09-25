@@ -123,7 +123,7 @@ animation: <name> <duration> <timing-function> <delay> <iteration-count> <direct
 
 ![transition transform](./static/transition-transform.png)
 
-显然浏览器花在 paint 的时间少的不止一星半点，动画演示期间并没有过多的 repaint 。简单说，[transform](https://csstriggers.com/transform) 不触发几何变化和绘制，它可以在 GPU 加速下，在**合成器线程（compositor thread）**中处理。
+显然浏览器花在 paint 的时间少的不止一星半点，动画演示期间并没有过多的 repaint 。简单说，[transform](https://csstriggers.com/transform) 不触发几何变化和绘制，它可以在 GPU 加速下，在 **合成器线程（compositor thread）** 中处理。
 
 ### GPU 加速
 
