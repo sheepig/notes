@@ -148,7 +148,7 @@ new Vue({
 
 每一个子组件都有一个 `parent` 属性，这个属性记录了父元素的 VNode 信息。
 
-![Vnode](./static/Vnode.png)
+![Vnode](./static/VNode.png)
 
 initLifecycle(vm) 时，vm 的 `watcher` 为空，`_isMounted` `_isDestoryed`  `_isBeingDestoryed` 的标记都为 false，此时组件还未挂载。
 

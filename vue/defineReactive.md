@@ -125,7 +125,66 @@ data: function() {
 vm.b = 'not reactive' // 非响应式
 ```
 
-但是向已设置数据响应式的对象/数组新增项/删除项，会触发它们的 `getter/setter` ，因为它们也被 observe 了，即使看起来，我们好像只使用了它们里面的属性，或项。
+但是向已设置数据响应式的对象/数组新增项/删除项，则会触发视图更新。但 Object.defineProperty 并不能检测到数组数据的变化。Vue 中之所以能够检测到数组变化，是做了 hack 方法
+
+```javascript
+var arrayProto = Array.prototype;
+var arrayMethods = Object.create(arrayProto);
+
+var methodsToPatch = [
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse'
+];
+
+/**
+ * Intercept mutating methods and emit events
+ */
+methodsToPatch.forEach(function (method) {
+  // cache original method
+  var original = arrayProto[method];
+  def(arrayMethods, method, function mutator () {
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+
+    // 调用原生方法
+    var result = original.apply(this, args);
+    var ob = this.__ob__;
+    var inserted;
+
+    // push，unshift 会向数组插入一个或多个元素，插入的元素就是所有入参
+    // splice 可能会向数组插入多个元素，插入到元素是入参下标为 2 开始以及后面的元素
+    // 这里主要获取数组新增成员
+    switch (method) {
+      case 'push':
+      case 'unshift':
+        inserted = args;
+        break
+      case 'splice':
+        inserted = args.slice(2);
+        break
+    }
+
+    // 如果有新增成员，observe 其中每一项
+    if (inserted) { ob.observeArray(inserted); }
+    // notify change
+    // 触发视图更新
+    ob.dep.notify();
+    return result
+  });
+});
+```
+
+要注意一点，一下方法修改数组，Vue 是无法检测的：
+
+ - 通过下标设置新增数组某一项的值 e.g. `this.arr[3] = 30`
+ - 修改数组长度 e.g. `this.arr.length = 4`
+
+上面这两个问题可以通过 splice 解决。或者更通用的，用 [vm.$set()](https://cn.vuejs.org/v2/api/#Vue-set) 。 
 
 ```javascript
 // 新增的 friends[2] 也会被 observe ，（有自己的 getter/setter）
@@ -134,11 +193,7 @@ this.friends.push({
   city: 'LA'
 });
 
-// 新增的 contact.zipCode 也会被 observe ，（有自己的 getter/setter）
-this.contact.zipCode = '223312';
-
 this.friends[2].city = 'unknow'; // 触发 getter/setter
-this.contact.zipCode = '111111'; // 触发 getter/setter
 ```
 
 ### 订阅者 Dep
