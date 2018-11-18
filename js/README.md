@@ -42,6 +42,10 @@
 
 [Promise 执行顺序](./promise/note.md)
 
+[Promise 链式回调](./promise-again/note.md)
+
+[异步队列的实现：promise vs generator & async/await](./async-await/note.md)
+
 [由 babel 编译结果看 ES6 语法糖](./syntactic-suger/note.md)
 
 ## 作用域相关问题

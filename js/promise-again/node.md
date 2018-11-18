@@ -308,6 +308,15 @@ function mergePromise(ajaxArray) {
     return result;
   })
 }
+
+
+// 或者
+
+ajaxArray.forEach((ajax) => {
+  p = p.then(ajax).then((data) => {
+    result.push(data)
+  })
+});
 ```
 
 
