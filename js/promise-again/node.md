@@ -205,6 +205,112 @@ Human.prototype.rest = function(sec) {
 }
 ```
 
+### Promise 工厂
+
+本段选自 [We have a problem with promises](https://pouchdb.com/2015/05/18/we-have-a-problem-with-promises.html)，有删改。
+
+假如你要一个接一个地执行一系列 promise ，类似 `Promise.all()` 的功能，但是不是并行的，你可能一时天真写下这样的代码：
+
+```javascript
+function executeSequentially(promises) {
+  var result = Promise.resolve();
+  promises.forEach(function (promise) {
+    result = result.then(promise);
+  });
+  return result;
+}
+```
+
+但是结果并非预期，传入 `executeSequentially()` 的一系列 promises 会并行执行。原因是你不应当在 promises 这个数组层级上操作，对每一个 promise 而言，一旦被创建，它就要开始执行了，这里你需要的是一个 promise 工厂：只有在调用的时候才创建 promise 对象。
+
+```javascript
+function executeSequentially(promiseFactories) {
+  var result = Promise.resolve();
+  promiseFactories.forEach(function (promiseFactory) {
+    result = result.then(promiseFactory);
+  });
+  return result;
+}
+```
+
+promise 工厂是一个很简单的函数，它返回一个 promise 。
+
+```javascript
+function myPromiseFactory() {
+  return somethingThatCreatesAPromise();
+}
+```
+
+事实上我们拆开 `result = result.then(promiseFactory)` 的壳子，它其实就是 `Promise.resolve().then(promiseFactory[0]).then(promiseFactory[1]).then(...)` ，promiseFactory 是什么？是一个返回 promise 的函数。所以这种方式和上边的[基于 promise 的异步队列]，是一样的。
+
+来看一个题目：
+
+```javascript
+//实现mergePromise函数，把传进去的数组顺序先后执行，
+//并且把返回的数据先后放到数组data中
+
+const timeout = ms => new Promise((resolve, reject) => {
+    setTimeout(() => {
+        resolve();
+    }, ms);
+});
+
+const ajax1 = () => timeout(2000).then(() => {
+    console.log('1');
+    return 1;
+});
+
+const ajax2 = () => timeout(1000).then(() => {
+    console.log('2');
+    return 2;
+});
+
+const ajax3 = () => timeout(2000).then(() => {
+    console.log('3');
+    return 3;
+});
+
+
+
+function mergePromise(ajaxArray) {
+//todo 补全函数
+}
+
+mergePromise([ajax1, ajax2, ajax3]).then(data => {
+    console.log('done');
+    console.log(data); // data 为 [1, 2, 3]
+});
+
+// 分别输出
+// 1
+// 2
+// 3
+// done
+// [1, 2, 3]
+```
+
+其实题目中已经写好了 promise 工厂，ajax1，ajax2，ajax3 每一个都是创建 promise 的工厂——它们的返回值都是一个 `new Promise(...)` 的操作，所以把 `return ajax1()` 写在 then 的回调函数里面就好。
+
+```javascript
+function mergePromise(ajaxArray) {
+  let result = [];
+  let p = Promise.resolve();
+  ajaxArray.forEach((ajax) => {
+    p = p.then(() => {
+      return ajax().then((data) => {
+        if (data) {
+          result.push(data)
+        }
+      })
+    })
+  });
+  return p.then(() => {
+    return result;
+  })
+}
+```
+
+
 > 参考文章
 >
 >[谈谈使用 promise 时候的一些反模式](http://efe.baidu.com/blog/promises-anti-pattern/)
